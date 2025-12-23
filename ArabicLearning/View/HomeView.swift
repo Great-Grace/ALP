@@ -1,252 +1,212 @@
-// HomeView - 메인 홈 화면
-// 피그마 디자인 기반 SwiftUI 구현
+// HomeView - 홈 대시보드
+// Premium Design & MVVM Architecture
 
 import SwiftUI
+import SwiftData
 
 struct HomeView: View {
-    // MARK: - Dummy Data
-    @State private var streakDays: Int = 0
-    @State private var todayProgress: Double = 0.0
-    @State private var selectedTab: Int = 0
-    @State private var completedDays: Set<String> = []
-    
-    private let weekdays = ["월", "화", "수", "목", "금", "토", "일"]
+    @Environment(\.modelContext) private var modelContext
+    @State private var viewModel = HomeViewModel()
     
     var body: some View {
-        VStack(spacing: 0) {
-            // 메인 콘텐츠
-            ScrollView {
-                VStack(spacing: 20) {
-                    // 상단 네비게이션 바
-                    navigationBar
-                    
-                    // 연속 학습일 카드
-                    streakCard
-                    
-                    // 오늘의 학습 카드
-                    todayStudyCard
-                    
-                    Spacer()
-                }
-                .padding(.horizontal, 20)
-            }
-            
-            // 하단 탭바
-            bottomTabBar
-        }
-        .background(Color(.systemBackground))
-    }
-    
-    // MARK: - Navigation Bar
-    private var navigationBar: some View {
-        HStack(spacing: 16) {
-            // 뒤로가기 버튼
-            Button(action: {}) {
-                Image(systemName: "chevron.left")
-                    .font(.title2)
-                    .foregroundStyle(.primary)
-            }
-            
-            // 별 아이콘
-            Image(systemName: "star")
-                .font(.title3)
-                .foregroundStyle(.secondary)
-            
-            // 프로그레스 바
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color(.systemGray4))
-                        .frame(height: 8)
-                    
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.blue)
-                        .frame(width: geometry.size.width * todayProgress, height: 8)
-                }
-            }
-            .frame(height: 8)
-            
-            // 설정 버튼
-            Button(action: {}) {
-                VStack(spacing: 2) {
-                    Image(systemName: "gearshape")
-                        .font(.title3)
-                    Text("setting")
-                        .font(.caption2)
-                }
-                .foregroundStyle(.secondary)
-            }
-        }
-        .padding(.top, 10)
-    }
-    
-    // MARK: - Streak Card (연속 학습일)
-    private var streakCard: some View {
-        VStack(spacing: 16) {
-            HStack(spacing: 20) {
-                // Fire 아이콘
-                ZStack {
-                    Circle()
-                        .stroke(Color(.systemGray3), lineWidth: 2)
-                        .frame(width: 60, height: 60)
-                    
-                    Image(systemName: "flame")
-                        .font(.system(size: 24))
-                        .foregroundStyle(.orange)
-                }
+        NavigationStack {
+            ZStack {
+                // Background
+                AnimatedGradientBackground()
                 
-                VStack(alignment: .leading, spacing: 8) {
-                    // 연속 학습일 텍스트
-                    Text("연속학습 \(streakDays)일")
-                        .font(.headline)
-                        .fontWeight(.bold)
-                    
-                    // 요일 버튼들
-                    HStack(spacing: 8) {
-                        ForEach(weekdays, id: \.self) { day in
-                            DayCircleButton(
-                                day: day,
-                                isCompleted: completedDays.contains(day)
-                            )
-                        }
-                    }
-                }
-                
-                Spacer()
-            }
-            .padding(20)
-        }
-        .background(Color(.systemGray6))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
-    
-    // MARK: - Today Study Card (오늘의 학습)
-    private var todayStudyCard: some View {
-        VStack(spacing: 20) {
-            HStack(spacing: 20) {
-                // Play 버튼 + 오늘의 학습
-                Button(action: {}) {
-                    HStack(spacing: 12) {
-                        Image(systemName: "play.fill")
-                            .font(.title2)
+                ScrollView {
+                    VStack(spacing: Design.spacingXL) {
+                        // Header
+                        headerSection
                         
-                        Text("오늘의 학습")
-                            .font(.headline)
+                        // Main Action
+                        startStudyCard
+                        
+                        // Stats Grid
+                        statsGrid
+                        
+                        // Streak / Progress
+                        streakSection
                     }
-                    .foregroundStyle(.primary)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color(.systemGray3), lineWidth: 1)
-                    )
+                    .padding(.horizontal, Design.spacingL)
+                    .padding(.top, Design.spacingL)
+                    .padding(.bottom, Design.spacingXXL)
+                }
+            }
+            .navigationBarTitleDisplayMode(.hidden)
+            .onAppear {
+                viewModel.setup(context: modelContext)
+            }
+            .fullScreenCover(isPresented: $viewModel.showStudySession) {
+                StudySessionView()
+            }
+            .onChange(of: viewModel.showStudySession) { _, isShowing in
+                if !isShowing {
+                    viewModel.refreshData()
+                }
+            }
+        }
+    }
+    
+    // MARK: - Header
+    private var headerSection: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: Design.spacingXS) {
+                Text(viewModel.greetingText)
+                    .appFont(AppFont.title2())
+                    .foregroundStyle(Color.textPrimary)
+                
+                Text(Date(), format: .dateTime.weekday(.wide).month().day())
+                    .appFont(AppFont.body())
+                    .textCase(.uppercase)
+                    .foregroundStyle(Color.textSecondary)
+            }
+            
+            Spacer()
+            
+            // Profile / Settings Button Placeholder
+            Button(action: {}) {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 20))
+                    .foregroundStyle(Color.textPrimary)
+                    .padding(10)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Circle())
+            }
+        }
+    }
+    
+    // MARK: - Main Action Card
+    private var startStudyCard: some View {
+        Button(action: { viewModel.showStudySession = true }) {
+            HStack {
+                VStack(alignment: .leading, spacing: Design.spacingS) {
+                    Text("Today's Session")
+                        .appFont(AppFont.headline())
+                        .foregroundStyle(.white.opacity(0.9))
+                    
+                    Text("Continue Learning")
+                        .appFont(AppFont.title1())
+                        .foregroundStyle(.white)
+                    
+                    Text("20 Words • 5 Min")
+                        .appFont(AppFont.minicaps())
+                        .foregroundStyle(.white.opacity(0.8))
+                        .padding(.top, 4)
                 }
                 
                 Spacer()
                 
-                // Circular Progress
-                CircularProgressView(progress: todayProgress)
-                    .frame(width: 80, height: 80)
+                Image(systemName: "play.circle.fill")
+                    .font(.system(size: 50))
+                    .foregroundStyle(.white)
+                    .shadow(radius: 10)
             }
-            .padding(20)
+            .padding(30)
+            .background(
+                ZStack {
+                    Design.primaryGradient
+                    // Decorative Circles
+                    Circle()
+                        .fill(.white.opacity(0.1))
+                        .frame(width: 150)
+                        .offset(x: 100, y: -50)
+                    Circle()
+                        .fill(.white.opacity(0.1))
+                        .frame(width: 100)
+                        .offset(x: 120, y: 60)
+                }
+            )
+            .clipShape(RoundedRectangle(cornerRadius: Design.radiusLarge))
+            .shadow(color: Design.shadowFloat.color, radius: Design.shadowFloat.radius, y: Design.shadowFloat.y)
         }
-        .background(Color(.systemGray6))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .scaleOnPress()
     }
     
-    // MARK: - Bottom Tab Bar
-    private var bottomTabBar: some View {
-        HStack {
-            Spacer()
+    // MARK: - Stats Grid
+    private var statsGrid: some View {
+        HStack(spacing: Design.spacingM) {
+            StatCard(
+                title: "Words",
+                value: "\(viewModel.totalWords)",
+                icon: "textformat.abc",
+                color: .accent
+            )
             
-            // 홈 탭
-            Button(action: { selectedTab = 0 }) {
-                Text("홈")
-                    .font(.headline)
-                    .foregroundStyle(selectedTab == 0 ? .primary : .secondary)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color(.systemGray3), lineWidth: selectedTab == 0 ? 2 : 1)
-                    )
-            }
+            StatCard(
+                title: "Chapters",
+                value: "\(viewModel.totalChapters)",
+                icon: "folder.fill",
+                color: .primaryLight
+            )
             
-            Spacer()
-            
-            // 내 정보 탭
-            Button(action: { selectedTab = 1 }) {
-                Text("내 정보")
-                    .font(.headline)
-                    .foregroundStyle(selectedTab == 1 ? .primary : .secondary)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color(.systemGray3), lineWidth: selectedTab == 1 ? 2 : 1)
-                    )
-            }
-            
-            Spacer()
+            StatCard(
+                title: "Accuracy",
+                value: viewModel.accuracyText,
+                icon: "chart.bar.fill",
+                color: .warning
+            )
         }
-        .padding(.vertical, 16)
-        .background(Color(.systemGray6))
+    }
+    
+    // MARK: - Streak Section
+    private var streakSection: some View {
+        GlassCard {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Daily Streak")
+                        .appFont(AppFont.headline())
+                        .foregroundStyle(Color.textPrimary)
+                    
+                    Text("\(viewModel.streakDays) Days on fire!")
+                        .appFont(AppFont.body())
+                        .foregroundStyle(Color.textSecondary)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "flame.fill")
+                    .font(.system(size: 30))
+                    .foregroundStyle(Color.orange)
+                    .shadow(color: .orange.opacity(0.4), radius: 8)
+            }
+        }
     }
 }
 
-// MARK: - Day Circle Button
-struct DayCircleButton: View {
-    let day: String
-    let isCompleted: Bool
+// MARK: - Helper Views
+struct StatCard: View {
+    let title: String
+    let value: String
+    let icon: String
+    let color: Color
     
     var body: some View {
-        ZStack {
-            Circle()
-                .stroke(isCompleted ? Color.orange : Color(.systemGray3), lineWidth: 1.5)
-                .frame(width: 32, height: 32)
+        VStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.15))
+                    .frame(width: 40, height: 40)
+                Image(systemName: icon)
+                    .foregroundStyle(color)
+                    .font(.system(size: 18, weight: .bold))
+            }
             
-            Text(day)
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundStyle(isCompleted ? .orange : .primary)
+            Text(value)
+                .appFont(AppFont.title3())
+                .foregroundStyle(Color.textPrimary)
+            
+            Text(title)
+                .appFont(AppFont.minicaps())
+                .foregroundStyle(Color.textSecondary)
         }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, Design.spacingM)
+        .glassyCard(cornerRadius: Design.radiusMedium)
     }
 }
 
-// MARK: - Circular Progress View
-struct CircularProgressView: View {
-    let progress: Double
-    
-    var body: some View {
-        ZStack {
-            // 배경 원
-            Circle()
-                .stroke(Color(.systemGray4), lineWidth: 4)
-            
-            // 프로그레스 원
-            Circle()
-                .trim(from: 0, to: progress)
-                .stroke(
-                    Color.blue,
-                    style: StrokeStyle(lineWidth: 4, lineCap: .round)
-                )
-                .rotationEffect(.degrees(-90))
-            
-            // 퍼센트 텍스트
-            Text("\(Int(progress * 100)) %")
-                .font(.system(size: 16, weight: .medium))
-        }
-    }
-}
-
-// MARK: - Preview
-#Preview("Home View") {
+#Preview {
     HomeView()
-}
-
-#Preview("Home View - With Data") {
-    HomeView()
-        .onAppear {
-            // 더미 데이터로 미리보기
-        }
+        .modelContainer(for: [VocabularyBook.self, Chapter.self, Word.self, QuizHistory.self])
 }
