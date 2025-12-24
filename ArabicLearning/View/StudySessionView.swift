@@ -5,6 +5,8 @@ import SwiftUI
 import SwiftData
 
 struct StudySessionView: View {
+    var mode: QuizMode // Injected dependency
+    
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
@@ -63,7 +65,7 @@ struct StudySessionView: View {
         }
         .onAppear {
             viewModel.setup(context: modelContext)
-            viewModel.startSession()
+            viewModel.startSession(mode: mode)
             isInputFocused = true
         }
         .alert("End Session?", isPresented: $showExitConfirm) {
@@ -160,7 +162,7 @@ struct StudySessionView: View {
                     // Arabic Sentence
                     if viewModel.sessionState == .reflection {
                        // Complete Sentence
-                        Text(word.exampleSentence)
+                        Text(viewModel.displaySentence)
                             .appFont(AppFont.arabicTitle())
                             .foregroundStyle(viewModel.isCorrect ? Color.success : Color.textPrimary)
                             .multilineTextAlignment(.center)
@@ -170,10 +172,8 @@ struct StudySessionView: View {
                         arabicSentenceWithBlank(word: word)
                     }
                     
-                    // Translation
-                    Text(word.sentenceKorean)
-                        .appFont(AppFont.body())
-                        .foregroundStyle(Color.textSecondary)
+                    // Translation (Highlighted)
+                    highlightedKoreanTranslation(fullSentence: word.sentenceKorean, target: word.korean)
                         .multilineTextAlignment(.center)
                         .padding(.top, Design.spacingS)
                 }
@@ -258,52 +258,48 @@ struct StudySessionView: View {
     
     // MARK: - Helpers
     
-    @ViewBuilder
-    private func arabicSentenceWithBlank(word: Word) -> some View {
-        // Simplified Blank Logic for new Design
-         let parts = splitSentence(sentence: word.exampleSentence, answer: word.arabic)
-         
-         HStack(alignment: .bottom, spacing: 6) {
-             if !parts.after.isEmpty {
-                 Text(parts.after)
-                     .appFont(AppFont.arabicBody())
-             }
-             
-             // The Blank
-             RoundedRectangle(cornerRadius: 8)
-                 .fill(Color.black.opacity(0.05))
-                 .frame(width: 100, height: 50)
-                 .overlay(
-                    Text(viewModel.userInput)
-                        .appFont(AppFont.arabicBody())
-                 )
-                 .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.textTertiary, style: StrokeStyle(lineWidth: 2, dash: [5]))
-                 )
-             
-             if !parts.before.isEmpty {
-                 Text(parts.before)
-                     .appFont(AppFont.arabicBody())
-             }
-         }
-         .environment(\.layoutDirection, .rightToLeft)
-         .offset(x: viewModel.shakeOffset)
-         .animation(.default, value: viewModel.shakeOffset)
+    private func highlightedKoreanTranslation(fullSentence: String, target: String) -> Text {
+        var attributedString = AttributedString(fullSentence)
+        
+        if let range = attributedString.range(of: target) {
+            attributedString[range].foregroundColor = .primary
+            attributedString[range].font = AppFont.body().bold()
+        }
+        
+        return Text(attributedString)
+            .font(AppFont.body())
+            .foregroundStyle(Color.textSecondary)
     }
     
-    private func splitSentence(sentence: String, answer: String) -> (before: String, after: String, found: Bool) {
-         // Reusing logic (simplified for brevity in this view, could be in VM)
-         // ... (Keeping the original logic essentially)
-         // For now, let's assume simple split or use the VM if I move it there.
-         // Since I can't move it to VM easily without modifying VM greatly, I'll copy the logic but keep it cleaner.
-         
-         if let range = sentence.range(of: answer) {
-             let before = String(sentence[..<range.lowerBound])
-             let after = String(sentence[range.upperBound...])
-             return (before, after, true)
-         }
-         return ("", "", false) // Fallback
+    @ViewBuilder
+    private func arabicSentenceWithBlank(word: Word) -> some View {
+        // Split sentence by spaces and show each word, blurring the answer
+        let words = viewModel.displaySentence.components(separatedBy: " ")
+        let answerClean = viewModel.displayArabic.withoutDiacritics
+        
+        // Using FlowLayout-like wrapping with HStack
+        HStack(spacing: 8) {
+            ForEach(Array(words.enumerated()), id: \.offset) { index, wordText in
+                let isAnswer = wordText.withoutDiacritics.contains(answerClean) ||
+                               answerClean.contains(wordText.withoutDiacritics)
+                
+                Text(wordText)
+                    .appFont(AppFont.arabicBody())
+                    .foregroundStyle(Color.textPrimary)
+                    .padding(.horizontal, isAnswer ? 12 : 0)
+                    .padding(.vertical, isAnswer ? 6 : 0)
+                    .background(
+                        isAnswer ?
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.primary.opacity(0.15))
+                        : nil
+                    )
+                    .blur(radius: isAnswer ? 8 : 0)
+            }
+        }
+        .environment(\.layoutDirection, .rightToLeft)
+        .offset(x: viewModel.shakeOffset)
+        .animation(.default, value: viewModel.shakeOffset)
     }
 }
 

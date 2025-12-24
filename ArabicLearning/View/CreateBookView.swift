@@ -25,8 +25,7 @@ struct CreateBookView: View {
         }
         return allWords.filter {
             $0.korean.localizedCaseInsensitiveContains(searchText) ||
-            $0.arabic.contains(searchText) ||
-            $0.pronunciation.localizedCaseInsensitiveContains(searchText)
+            $0.arabic.contains(searchText)
         }
     }
     
@@ -41,16 +40,18 @@ struct CreateBookView: View {
                 }
             }
             .navigationTitle(step == .naming ? "단어장 만들기" : "단어 선택")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("취소") {
                         dismiss()
                     }
                     .foregroundStyle(Color.textSecondary)
                 }
                 
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     if step == .selectingWords {
                         Button("완료 (\(selectedWordIds.count))") {
                             createBook()
@@ -232,10 +233,6 @@ struct CreateBookView: View {
                             .environment(\.layoutDirection, .rightToLeft)
                         
                         Spacer()
-                        
-                        Text(word.pronunciation)
-                            .font(.caption)
-                            .foregroundStyle(Color.textTertiary)
                     }
                     
                     Text(word.korean)
@@ -280,7 +277,6 @@ struct CreateBookView: View {
             // Create new word instance linked to the new chapter
             let newWord = Word(
                 arabic: word.arabic,
-                pronunciation: word.pronunciation,
                 korean: word.korean,
                 exampleSentence: word.exampleSentence,
                 sentenceKorean: word.sentenceKorean,

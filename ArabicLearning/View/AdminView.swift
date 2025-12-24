@@ -42,7 +42,7 @@ struct AdminView: View {
             .background(Color.backgroundPrimary)
             .navigationTitle("관리")
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .primaryAction) {
                     Menu {
                         Button(action: { showCreateBookSheet = true }) {
                             Label("직접 단어장 만들기", systemImage: "plus.circle")
@@ -59,6 +59,17 @@ struct AdminView: View {
                             .font(.title3)
                             .fontWeight(.semibold)
                             .foregroundStyle(Color.primary)
+                    }
+                }
+                
+                ToolbarItem(placement: .cancellationAction) {
+                    if !allWords.isEmpty {
+                        ShareLink(item: generateExportFile(), preview: SharePreview("Database Export", image: Image(systemName: "tablecells"))) {
+                            Image(systemName: "square.and.arrow.up")
+                                .font(.body)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(Color.accent)
+                        }
                     }
                 }
             }
@@ -366,48 +377,14 @@ struct AdminView: View {
     
     // MARK: - Actions
     private func loadDefaultData() {
-        // 기본 단어장 생성
-        let defaultBook = VocabularyBook(
-            name: "실용 아랍어 문법",
-            descriptionText: "기본 제공 단어장",
-            isDefault: true
-        )
-        modelContext.insert(defaultBook)
-        
-        // 1장~3장 샘플 생성
-        for i in 1...3 {
-            let chapter = Chapter(
-                name: "\(i)장",
-                orderIndex: i,
-                book: defaultBook
-            )
-            modelContext.insert(chapter)
-            
-            // 샘플 단어 추가
-            if i == 1 {
-                let sampleWords = [
-                    ("مَدْرَسَة", "마드라사", "학교", "أَذْهَبُ إِلَى الْمَدْرَسَةِ", "나는 학교에 간다"),
-                    ("كِتَاب", "키타브", "책", "هَذَا كِتَابٌ جَدِيدٌ", "이것은 새 책이다"),
-                    ("قَلَم", "깔람", "펜", "أَكْتُبُ بِالْقَلَمِ", "나는 펜으로 쓴다"),
-                ]
-                
-                for (arabic, pron, korean, sentence, sentenceKr) in sampleWords {
-                    let word = Word(
-                        arabic: arabic,
-                        pronunciation: pron,
-                        korean: korean,
-                        exampleSentence: sentence,
-                        sentenceKorean: sentenceKr,
-                        chapter: chapter
-                    )
-                    modelContext.insert(word)
-                }
-            }
+        do {
+            let count = try CSVDataLoader.loadSampleData(context: modelContext)
+            alertMessage = "샘플 데이터 로드 완료: \(count)개 단어"
+            showAlert = true
+        } catch {
+            alertMessage = "데이터 로드 실패: \(error.localizedDescription)"
+            showAlert = true
         }
-        
-        try? modelContext.save()
-        alertMessage = "샘플 데이터가 로드되었습니다!"
-        showAlert = true
     }
     
     private func handleFileImport(_ result: Result<[URL], Error>) {
@@ -445,6 +422,16 @@ struct AdminView: View {
         alertMessage = "정말 모든 데이터를 삭제하시겠습니까?"
         // TODO: Implement full delete with separate confirmation
     }
+    
+    // MARK: - Export Helper
+    private func generateExportFile() -> URL {
+        let csvString = CSVDataExporter.generateFullCSV(from: allWords)
+        let fileName = "ArabicWords_FullDump_\(Date().formatted(date: .numeric, time: .omitted)).csv"
+        let tempUrl = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        
+        try? csvString.write(to: tempUrl, atomically: true, encoding: .utf8)
+        return tempUrl
+    }
 }
 
 // MARK: - Chapter Detail View
@@ -461,11 +448,13 @@ struct ChapterDetailView: View {
                             .fontWeight(.semibold)
                             .environment(\.layoutDirection, .rightToLeft)
                         
-                        Spacer()
+                        // [Debug] Show Clean Version
+                        Text("[\(word.arabicClean)]")
+                            .font(.caption2)
+                            .foregroundStyle(Color.textTertiary)
+                            .padding(.leading, 4)
                         
-                        Text(word.pronunciation)
-                            .font(.caption)
-                            .foregroundStyle(Color.textSecondary)
+                        Spacer()
                     }
                     
                     Text(word.korean)
@@ -475,6 +464,11 @@ struct ChapterDetailView: View {
                     Text(word.exampleSentence)
                         .font(.caption)
                         .foregroundStyle(Color.textTertiary)
+                        .environment(\.layoutDirection, .rightToLeft)
+                    
+                    Text("Clean: \(word.sentenceClean)")
+                        .font(.caption2)
+                        .foregroundStyle(Color.textTertiary.opacity(0.5))
                         .environment(\.layoutDirection, .rightToLeft)
                 }
                 .padding(.vertical, 4)

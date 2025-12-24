@@ -14,6 +14,20 @@ class HomeViewModel {
     
     // UI State
     var showStudySession: Bool = false
+    var showChapterFilter: Bool = false
+    var selectedQuizMode: QuizMode = .general
+    
+    // Chapter Filtering
+    var availableChapters: [Chapter] = []
+    var selectedChapterIds: Set<UUID> = []
+    
+    var selectedChaptersCount: Int {
+        selectedChapterIds.isEmpty ? availableChapters.count : selectedChapterIds.count
+    }
+    
+    var isAllSelected: Bool {
+        selectedChapterIds.isEmpty || selectedChapterIds.count == availableChapters.count
+    }
     
     // Dependencies
     private var modelContext: ModelContext?
@@ -21,6 +35,7 @@ class HomeViewModel {
     func setup(context: ModelContext) {
         self.modelContext = context
         refreshData()
+        loadChapters()
     }
     
     func refreshData() {
@@ -56,9 +71,43 @@ class HomeViewModel {
             }
         }
         
-        // 3. Simple Streak Calculation (Example Logic)
-        // In a real app, this would query past days. For now, we just track if today is active.
+        // 3. Simple Streak Calculation
         streakDays = todayTotal > 0 ? 1 : 0
+    }
+    
+    // MARK: - Chapter Filtering
+    private func loadChapters() {
+        guard let context = modelContext else { return }
+        
+        let descriptor = FetchDescriptor<Chapter>(sortBy: [SortDescriptor(\.orderIndex)])
+        availableChapters = (try? context.fetch(descriptor)) ?? []
+        
+        // Default: all selected
+        selectedChapterIds = Set(availableChapters.map { $0.id })
+    }
+    
+    func toggleChapter(_ id: UUID) {
+        if selectedChapterIds.contains(id) {
+            selectedChapterIds.remove(id)
+        } else {
+            selectedChapterIds.insert(id)
+        }
+    }
+    
+    func selectAllChapters() {
+        selectedChapterIds = Set(availableChapters.map { $0.id })
+    }
+    
+    func deselectAllChapters() {
+        selectedChapterIds.removeAll()
+    }
+    
+    func toggleSelectAll() {
+        if isAllSelected {
+            deselectAllChapters()
+        } else {
+            selectAllChapters()
+        }
     }
     
     // Greeting Logic
@@ -75,3 +124,4 @@ class HomeViewModel {
         return "\(Int(accuracy))%"
     }
 }
+

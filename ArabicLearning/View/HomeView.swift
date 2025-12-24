@@ -12,15 +12,26 @@ struct HomeView: View {
         NavigationStack {
             ZStack {
                 // Background
+                #if os(macOS)
+                Color(hex: "2D2D2D")
+                    .ignoresSafeArea()
+                #else
                 AnimatedGradientBackground()
+                #endif
                 
                 ScrollView {
                     VStack(spacing: Design.spacingXL) {
                         // Header
                         headerSection
                         
+                        // Mode Selection
+                        modeSelection
+                        
                         // Main Action
                         startStudyCard
+                        
+                        // Chapter Filter Button
+                        chapterFilterButton
                         
                         // Stats Grid
                         statsGrid
@@ -33,18 +44,46 @@ struct HomeView: View {
                     .padding(.bottom, Design.spacingXXL)
                 }
             }
-            .navigationBarTitleDisplayMode(.hidden)
+            #if os(iOS)
+            .toolbar(.hidden, for: .navigationBar)
+            #endif
             .onAppear {
                 viewModel.setup(context: modelContext)
             }
+            #if os(iOS)
             .fullScreenCover(isPresented: $viewModel.showStudySession) {
-                StudySessionView()
+                StudySessionView(mode: viewModel.selectedQuizMode)
             }
+            #else
+            .sheet(isPresented: $viewModel.showStudySession) {
+                StudySessionView(mode: viewModel.selectedQuizMode)
+                    .frame(minWidth: 800, minHeight: 600)
+            }
+            #endif
             .onChange(of: viewModel.showStudySession) { _, isShowing in
                 if !isShowing {
                     viewModel.refreshData()
                 }
             }
+            #if os(macOS)
+            .popover(isPresented: $viewModel.showChapterFilter) {
+                ChapterFilterSheet(
+                    availableChapters: $viewModel.availableChapters,
+                    selectedChapterIds: $viewModel.selectedChapterIds,
+                    onToggleAll: viewModel.toggleSelectAll,
+                    isAllSelected: viewModel.isAllSelected
+                )
+            }
+            #else
+            .sheet(isPresented: $viewModel.showChapterFilter) {
+                ChapterFilterSheet(
+                    availableChapters: $viewModel.availableChapters,
+                    selectedChapterIds: $viewModel.selectedChapterIds,
+                    onToggleAll: viewModel.toggleSelectAll,
+                    isAllSelected: viewModel.isAllSelected
+                )
+            }
+            #endif
         }
     }
     
@@ -74,6 +113,17 @@ struct HomeView: View {
                     .clipShape(Circle())
             }
         }
+    }
+    
+    // MARK: - Mode Selection
+    private var modeSelection: some View {
+        Picker("Mode", selection: $viewModel.selectedQuizMode) {
+            ForEach(QuizMode.allCases) { mode in
+                Text(mode.title).tag(mode)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal, 4)
     }
     
     // MARK: - Main Action Card
@@ -121,6 +171,37 @@ struct HomeView: View {
             .shadow(color: Design.shadowFloat.color, radius: Design.shadowFloat.radius, y: Design.shadowFloat.y)
         }
         .scaleOnPress()
+    }
+    
+    // MARK: - Chapter Filter Button
+    private var chapterFilterButton: some View {
+        Button(action: { viewModel.showChapterFilter = true }) {
+            HStack(spacing: 12) {
+                Image(systemName: "slider.horizontal.3")
+                    .font(.system(size: 16, weight: .semibold))
+                
+                Text("범위 설정")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                
+                Spacer()
+                
+                Text("\(viewModel.selectedChaptersCount)개 챕터 선택됨")
+                    .font(.caption)
+                    .foregroundStyle(Color.textSecondary)
+                
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(Color.textTertiary)
+            }
+            .foregroundStyle(Color.textPrimary)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .background(Color.white.opacity(0.9))
+            .clipShape(RoundedRectangle(cornerRadius: Design.radiusMedium))
+            .shadow(color: Design.shadowSofter.color, radius: Design.shadowSofter.radius, y: Design.shadowSofter.y)
+        }
+        .buttonStyle(.plain)
     }
     
     // MARK: - Stats Grid

@@ -30,22 +30,7 @@ extension Color {
     static let error = Color(hex: "FF7675")      // Soft Red for Error
     static let warning = Color(hex: "FDCB6E")    // Warm Yellow for Warning
     
-    // Gradients
-    static let primaryGradient = LinearGradient(
-        colors: [Color.primary, Color.primaryLight],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-    )
-    
-    static let meshGradient = LinearGradient(
-        colors: [
-            Color(hex: "6C5CE7"),
-            Color(hex: "A29BFE"),
-            Color(hex: "74B9FF")
-        ],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-    )
+
     
     // Hex Initializer
     init(hex: String) {
@@ -122,6 +107,23 @@ struct Design {
     static let springBouncy = Animation.spring(response: 0.4, dampingFraction: 0.6)
     static let springSmooth = Animation.spring(response: 0.5, dampingFraction: 0.8)
     static let easeInOut = Animation.easeInOut(duration: 0.2)
+    
+    // Gradients
+    static let primaryGradient = LinearGradient(
+        colors: [Color.primary, Color.primaryLight],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+    
+    static let meshGradient = LinearGradient(
+        colors: [
+            Color(hex: "6C5CE7"),
+            Color(hex: "A29BFE"),
+            Color(hex: "74B9FF")
+        ],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
 }
 
 // MARK: - View Modifiers
@@ -150,8 +152,31 @@ extension View {
         modifier(GlassyCardStyle(padding: padding, cornerRadius: cornerRadius))
     }
     
+    func cardStyle(padding: CGFloat = Design.spacingL) -> some View {
+        self
+            .padding(padding)
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: Design.radiusLarge))
+            .shadow(color: Design.shadowSoft.color, radius: Design.shadowSoft.radius, y: Design.shadowSoft.y)
+    }
+    
     func appFont(_ font: Font) -> some View {
         self.font(font)
+    }
+    
+    func scaleOnPress() -> some View {
+        self.buttonStyle(ScaleButtonStyle())
+    }
+}
+
+// Alias for compatibility
+typealias PrimaryButtonStyle = PremiumButtonStyle
+
+struct ScaleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .animation(Design.springBouncy, value: configuration.isPressed)
     }
 }
 

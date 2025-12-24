@@ -7,7 +7,7 @@ import SwiftData
 struct CSVWordRow {
     let chapter: String
     let arabic: String
-    let pronunciation: String
+    // let pronunciation: String // [Deleted]
     let korean: String
     let exampleSentence: String
     let sentenceKorean: String
@@ -26,15 +26,17 @@ struct CSVDataLoader {
             guard index > 0 && !line.isEmpty else { continue }
             
             let columns = line.components(separatedBy: ",")
-            guard columns.count >= 6 else { continue }
+            // chapter, arabic, korean, example, sentence_korean (5 columns)
+            guard columns.count >= 5 else { continue }
             
             let row = CSVWordRow(
                 chapter: columns[0].trimmingCharacters(in: .whitespaces),
                 arabic: columns[1].trimmingCharacters(in: .whitespaces),
-                pronunciation: columns[2].trimmingCharacters(in: .whitespaces),
-                korean: columns[3].trimmingCharacters(in: .whitespaces),
-                exampleSentence: columns[4].trimmingCharacters(in: .whitespaces),
-                sentenceKorean: columns[5].trimmingCharacters(in: .whitespaces)
+                // pronunciation: columns[2]... // [Deleted] - Index shift requires attention
+                // Assuming new CSV format: chapter, arabic, korean, example_sentence, sentence_korean
+                korean: columns[2].trimmingCharacters(in: .whitespaces),
+                exampleSentence: columns[3].trimmingCharacters(in: .whitespaces),
+                sentenceKorean: columns[4].trimmingCharacters(in: .whitespaces)
             )
             rows.append(row)
         }
@@ -87,7 +89,7 @@ struct CSVDataLoader {
             // 단어 생성
             let word = Word(
                 arabic: row.arabic,
-                pronunciation: row.pronunciation,
+                // pronunciation: row.pronunciation, // [Deleted]
                 korean: row.korean,
                 exampleSentence: row.exampleSentence,
                 sentenceKorean: row.sentenceKorean,

@@ -30,16 +30,37 @@ class StudySessionViewModel {
     private(set) var queue: [Word] = []
     private(set) var currentIndex: Int = 0
     
+    // MARK: - Quiz Mode
+    var currentMode: QuizMode = .general
+    
     // MARK: - Current Question
     var currentWord: Word? {
         guard currentIndex < queue.count else { return nil }
         return queue[currentIndex]
     }
     
-    /// 정답 (모음 제거된 순수 철자)
+    /// 정답 (모음 제거된 순수 철자 - 모드 관계없이 항상 clean version 사용)
     var canonicalAnswer: String {
         guard let word = currentWord else { return "" }
-        return normalizeArabic(word.arabic)
+        return word.arabicClean // 스키마 최적화로 런타임 연산 제거
+    }
+    
+    /// 화면 표시용 아랍어 단어 (모드에 따라 다름)
+    var displayArabic: String {
+        guard let word = currentWord else { return "" }
+        switch currentMode {
+        case .general: return word.arabic
+        case .expert: return word.arabicClean
+        }
+    }
+    
+    /// 화면 표시용 예문 (모드에 따라 다름)
+    var displaySentence: String {
+        guard let word = currentWord else { return "" }
+        switch currentMode {
+        case .general: return word.exampleSentence
+        case .expert: return word.sentenceClean
+        }
     }
     
     /// 정답 길이
@@ -119,8 +140,9 @@ class StudySessionViewModel {
     }
     
     // MARK: - Load Session
-    func startSession() {
+    func startSession(mode: QuizMode = .general) {
         guard let context = modelContext else { return }
+        self.currentMode = mode
         sessionState = .loading
         
         let descriptor = FetchDescriptor<Word>()
@@ -232,15 +254,14 @@ class StudySessionViewModel {
     
     var hintText: String? {
         guard let word = currentWord else { return nil }
-        let answer = word.arabic
         
         switch hintLevel {
         case .none:
             return nil
         case .firstLetter:
-            return String(answer.prefix(1))
+            return String(canonicalAnswer.prefix(1)) // Hint also uses clean answer check logic mostly, but display might vary. Let's use canonical logic.
         case .fullAnswer:
-            return answer
+            return canonicalAnswer
         }
     }
     
@@ -327,6 +348,7 @@ class StudySessionViewModel {
         
         let history = QuizHistory(
             quizType: "typing",
+            quizMode: currentMode.rawValue,
             isCorrect: isCorrect && !usedHint,
             userAnswer: userInput,
             word: word
