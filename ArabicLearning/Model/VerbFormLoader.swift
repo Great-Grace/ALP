@@ -7,7 +7,6 @@ import SwiftData
 struct VerbFormRow {
     let root: String
     let formNumber: Int
-    let formLabel: String
     let pattern: String
     let nuanceKorean: String
     let arabicWord: String
@@ -31,7 +30,6 @@ struct VerbFormLoader {
             let row = VerbFormRow(
                 root: columns[0].trimmingCharacters(in: .whitespaces),
                 formNumber: Int(columns[1].trimmingCharacters(in: .whitespaces)) ?? 1,
-                formLabel: columns[2].trimmingCharacters(in: .whitespaces),
                 pattern: columns[3].trimmingCharacters(in: .whitespaces),
                 nuanceKorean: columns[4].trimmingCharacters(in: .whitespaces),
                 arabicWord: columns[5].trimmingCharacters(in: .whitespaces),
@@ -78,7 +76,6 @@ struct VerbFormLoader {
             let verbForm = VerbForm(
                 root: row.root,
                 formNumber: row.formNumber,
-                formLabel: row.formLabel,
                 pattern: row.pattern,
                 nuanceKorean: row.nuanceKorean,
                 arabicWord: row.arabicWord,
@@ -105,7 +102,6 @@ struct VerbFormLoader {
             let verbForm = VerbForm(
                 root: row.root,
                 formNumber: row.formNumber,
-                formLabel: row.formLabel,
                 pattern: row.pattern,
                 nuanceKorean: row.nuanceKorean,
                 arabicWord: row.arabicWord,

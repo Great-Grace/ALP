@@ -30,6 +30,9 @@ struct HomeView: View {
                         // Main Action
                         startStudyCard
                         
+                        // Structure Drill (Dual-Column Quiz)
+                        structureDrillCard
+                        
                         // Chapter Filter Button
                         chapterFilterButton
                         
@@ -52,11 +55,11 @@ struct HomeView: View {
             }
             #if os(iOS)
             .fullScreenCover(isPresented: $viewModel.showStudySession) {
-                StudySessionView(mode: viewModel.selectedQuizMode, selectedChapterIds: viewModel.selectedChapterIds)
+                UnifiedStudySessionView(quizState: .novice)
             }
             #else
             .navigationDestination(isPresented: $viewModel.showStudySession) {
-                StudySessionView(mode: viewModel.selectedQuizMode, selectedChapterIds: viewModel.selectedChapterIds)
+                UnifiedStudySessionView(quizState: .novice)
             }
             #endif
             .onChange(of: viewModel.showStudySession) { _, isShowing in
@@ -170,6 +173,57 @@ struct HomeView: View {
             .shadow(color: Design.shadowFloat.color, radius: Design.shadowFloat.radius, y: Design.shadowFloat.y)
         }
         .scaleOnPress()
+    }
+    
+    // MARK: - Structure Drill Card (Dual-Column Quiz)
+    @State private var showStructureDrill: Bool = false
+    
+    private var structureDrillCard: some View {
+        NavigationLink {
+            UnifiedStudySessionView(quizState: .bridge)
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: Design.spacingS) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "rectangle.split.2x1.fill")
+                            .font(.caption)
+                        Text("NEW")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                    }
+                    .foregroundStyle(.white.opacity(0.9))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(.white.opacity(0.2))
+                    .clipShape(Capsule())
+                    
+                    Text("구조 훈련")
+                        .appFont(AppFont.title2())
+                        .foregroundStyle(.white)
+                    
+                    Text("동사 파생형 • 패턴 인식")
+                        .appFont(AppFont.minicaps())
+                        .foregroundStyle(.white.opacity(0.8))
+                }
+                
+                Spacer()
+                
+                Image(systemName: "arrow.right.circle.fill")
+                    .font(.system(size: 40))
+                    .foregroundStyle(.white)
+            }
+            .padding(24)
+            .background(
+                LinearGradient(
+                    colors: [Color.purple, Color.purple.opacity(0.7)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .clipShape(RoundedRectangle(cornerRadius: Design.radiusLarge))
+            .shadow(color: .purple.opacity(0.3), radius: 12, y: 6)
+        }
+        .buttonStyle(.plain)
     }
     
     // MARK: - Chapter Filter Button

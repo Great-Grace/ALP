@@ -10,14 +10,14 @@ final class VerbForm {
     
     // MARK: - Core Data
     
-    /// 어근 (아랍어) - 예: "ك-ت-ب"
+    /// 어근 (아랍어, 하이픈 구분) - 예: "ك-ت-ب"
     var root: String = ""
+    
+    /// 어근 (모음/하이픈 제거, 검색용) - 예: "كتب"
+    var rootClean: String = ""
     
     /// 동사 형태 번호 (1~10)
     var formNumber: Int = 1
-    
-    /// 형태 라벨 (한국어) - "1형", "2형", ...
-    var formLabel: String = "1형"
     
     /// 패턴 (아랍어) - "فَعَلَ", "فَعَّلَ", ...
     var pattern: String = ""
@@ -28,11 +28,21 @@ final class VerbForm {
     /// 아랍어 단어 (완전 모음) - "كَتَبَ"
     var arabicWord: String = ""
     
+    /// 아랍어 단어 (모음 제거, 검색용) - "كتب"
+    var arabicWordClean: String = ""
+    
     /// 한국어 뜻 - "쓰다"
     var meaningKorean: String = ""
     
     /// CAMeL 검증 여부
     var verified: Bool = false
+    
+    // MARK: - Computed (Presentation Layer)
+    
+    /// 형태 라벨 (동적 생성) - "1형", "2형", ...
+    var formLabel: String {
+        return "\(formNumber)형"
+    }
     
     // MARK: - FSRS (Dual-Column Quiz용)
     
@@ -58,16 +68,14 @@ final class VerbForm {
         set { statusRaw = newValue.rawValue }
     }
     
-    // MARK: - Computed
+    // MARK: - Computed: Retrievability
     
-    /// 현재 인출 가능성
     var currentRetrievability: Double {
         guard let lastDate = lastReviewedAt else { return 0.0 }
         let elapsedDays = Date().timeIntervalSince(lastDate) / 86400
         return ReviewScheduler.shared.calculateRetrievability(stability: stability, daysSince: elapsedDays)
     }
     
-    /// 복습 필요 여부
     var needsReview: Bool {
         guard lastReviewedAt != nil else { return status == .new }
         return currentRetrievability < 0.9
@@ -78,7 +86,6 @@ final class VerbForm {
     init(
         root: String,
         formNumber: Int,
-        formLabel: String,
         pattern: String,
         nuanceKorean: String,
         arabicWord: String,
@@ -87,11 +94,12 @@ final class VerbForm {
     ) {
         self.id = UUID()
         self.root = root
+        self.rootClean = root.replacingOccurrences(of: "-", with: "").withoutDiacritics
         self.formNumber = formNumber
-        self.formLabel = formLabel
         self.pattern = pattern
         self.nuanceKorean = nuanceKorean
         self.arabicWord = arabicWord
+        self.arabicWordClean = arabicWord.withoutDiacritics
         self.meaningKorean = meaningKorean
         self.verified = verified
     }
