@@ -33,9 +33,11 @@ struct AdminView: View {
                         vocabularyBooksSection
                     }
                     
-                    // 위험 영역
+                    // 위험 영역 (DEBUG 빌드만)
+                    #if DEBUG
                     dangerSection
                         .padding(.top, Design.spacingL)
+                    #endif
                 }
                 .padding(Design.spacingL)
             }
@@ -331,10 +333,11 @@ struct AdminView: View {
         .background(Color.backgroundSecondary.opacity(0.5))
     }
     
-    // MARK: - Danger Section
+    // MARK: - Danger Section (DEBUG only)
+    #if DEBUG
     private var dangerSection: some View {
         VStack(alignment: .leading, spacing: Design.spacingM) {
-            Text("위험 영역")
+            Text("위험 영역 (DEBUG)")
                 .font(.headline)
                 .foregroundStyle(Color.error)
             
@@ -374,6 +377,7 @@ struct AdminView: View {
             .scaleOnPress()
         }
     }
+    #endif
     
     // MARK: - Actions
     private func loadDefaultData() {

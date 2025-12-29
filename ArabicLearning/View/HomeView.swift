@@ -52,12 +52,11 @@ struct HomeView: View {
             }
             #if os(iOS)
             .fullScreenCover(isPresented: $viewModel.showStudySession) {
-                StudySessionView(mode: viewModel.selectedQuizMode)
+                StudySessionView(mode: viewModel.selectedQuizMode, selectedChapterIds: viewModel.selectedChapterIds)
             }
             #else
-            .sheet(isPresented: $viewModel.showStudySession) {
-                StudySessionView(mode: viewModel.selectedQuizMode)
-                    .frame(minWidth: 800, minHeight: 600)
+            .navigationDestination(isPresented: $viewModel.showStudySession) {
+                StudySessionView(mode: viewModel.selectedQuizMode, selectedChapterIds: viewModel.selectedChapterIds)
             }
             #endif
             .onChange(of: viewModel.showStudySession) { _, isShowing in

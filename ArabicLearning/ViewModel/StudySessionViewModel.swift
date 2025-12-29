@@ -71,15 +71,23 @@ class StudySessionViewModel {
     // MARK: - User Input (Non-destructive)
     var userInput: String = "" {
         didSet {
+            // 아랍어만 입력 허용
+            let filtered = userInput.arabicOnly
+            if filtered != userInput {
+                userInput = filtered
+                return
+            }
+            
             // 입력 변경 시 오류 상태만 리셋 (입력값은 유지)
             if userInput != oldValue {
                 isWrong = false
                 shakeOffset = 0
             }
             
-            // 자동 채점: 길이가 같아지면 검증 (지우지 않음)
-            let normalizedInput = normalizeArabic(userInput)
-            if !userInput.isEmpty && normalizedInput.count == answerLength {
+            // 자동 채점: 공백 제거 후 비교
+            let normalizedInput = userInput.normalizedForComparison
+            let normalizedAnswer = canonicalAnswer.withoutSpaces
+            if !userInput.isEmpty && normalizedInput.count == normalizedAnswer.count {
                 autoValidate()
             }
         }
@@ -90,6 +98,7 @@ class StudySessionViewModel {
     var isCorrect: Bool = false
     var isWrong: Bool = false
     var usedHint: Bool = false
+    var hasRevealedAnswer: Bool = false  // 3-Tier: 정답 보기 사용 여부
     var hintLevel: HintLevel = .none
     var shakeOffset: CGFloat = 0
     
@@ -129,7 +138,10 @@ class StudySessionViewModel {
     }
     
     // MARK: - Settings
-    var dailyGoal: Int = 20
+    var dailyGoal: Int = 30
+    
+    // MARK: - Mastery Tracking (Clean Solve Only)
+    private(set) var masteredCount: Int = 0
     
     private var modelContext: ModelContext?
     private var allWords: [Word] = []
@@ -139,30 +151,76 @@ class StudySessionViewModel {
         self.modelContext = context
     }
     
-    // MARK: - Load Session
-    func startSession(mode: QuizMode = .general) {
+    // MARK: - Load Session (Spiral Curriculum + SRS)
+    func startSession(mode: QuizMode = .general, selectedChapterIds: Set<UUID>? = nil) {
         guard let context = modelContext else { return }
         self.currentMode = mode
         sessionState = .loading
         
+        // 1. Load all words
         let descriptor = FetchDescriptor<Word>()
         allWords = (try? context.fetch(descriptor)) ?? []
         
-        let targetCount = min(dailyGoal, allWords.count)
+        // 2. Apply chapter filter
+        var filteredWords = allWords
+        if let chapterIds = selectedChapterIds, !chapterIds.isEmpty {
+            filteredWords = allWords.filter { word in
+                guard let chapterId = word.chapter?.id else { return false }
+                return chapterIds.contains(chapterId)
+            }
+        }
         
-        guard targetCount > 0 else {
+        // 3. Get or create UserProgress
+        let progressDescriptor = FetchDescriptor<UserProgress>()
+        var userProgress: UserProgress
+        if let existing = try? context.fetch(progressDescriptor).first {
+            userProgress = existing
+        } else {
+            userProgress = UserProgress()
+            context.insert(userProgress)
+        }
+        
+        // 4. Get current quiz state from spiral curriculum
+        let currentQuizState = QuizGenerator.shared.getCurrentState(progress: userProgress)
+        
+        // 5. Generate session based on state
+        var sessionQueue = QuizGenerator.shared.generateSession(
+            state: currentQuizState,
+            allWords: filteredWords,
+            limit: dailyGoal
+        )
+        
+        // 6. If state-based is empty, fallback to SRS logic
+        if sessionQueue.isEmpty {
+            let today = Date()
+            let reviewWords = filteredWords.filter { word in
+                guard let reviewDate = word.nextReviewDate else { return false }
+                return reviewDate <= today
+            }
+            let newWords = filteredWords.filter { $0.status == .new }
+            let learningWords = filteredWords.filter { $0.status == .learning && $0.nextReviewDate == nil }
+            
+            let reviewCount = min(reviewWords.count, dailyGoal / 2)
+            let remainingSlots = dailyGoal - reviewCount
+            
+            sessionQueue.append(contentsOf: reviewWords.shuffled().prefix(reviewCount))
+            sessionQueue.append(contentsOf: (newWords + learningWords).shuffled().prefix(remainingSlots))
+        }
+        
+        guard !sessionQueue.isEmpty else {
             sessionState = .ready
             return
         }
         
-        queue = Array(allWords.shuffled().prefix(targetCount))
+        queue = sessionQueue.shuffled()
         initialQueueSize = queue.count
         currentIndex = 0
         completedCount = 0
+        masteredCount = 0
         correctCount = 0
         wrongCount = 0
         wrongWords = []
-        completedIndices = []  // Reset completion tracking
+        completedIndices = []
         
         prepareCurrentQuestion()
         sessionState = .inProgress
@@ -175,6 +233,7 @@ class StudySessionViewModel {
         isCorrect = false
         isWrong = false
         usedHint = false
+        hasRevealedAnswer = false  // 3-Tier: 리셋
         hintLevel = .none
         shakeOffset = 0
     }
@@ -183,8 +242,9 @@ class StudySessionViewModel {
     private func autoValidate() {
         guard currentWord != nil, !isAnswered else { return }
         
-        let normalizedInput = normalizeArabic(userInput)
-        let normalizedAnswer = canonicalAnswer
+        // 공백 제거 후 비교
+        let normalizedInput = userInput.normalizedForComparison
+        let normalizedAnswer = canonicalAnswer.withoutSpaces
         
         if normalizedInput == normalizedAnswer {
             // 정답 → 성찰 모드로 전환
@@ -198,22 +258,32 @@ class StudySessionViewModel {
     private func handleCorrectAnswer() {
         isCorrect = true
         isAnswered = true
-        completedIndices.insert(currentIndex)  // Mark as completed
+        completedIndices.insert(currentIndex)
         
         if !usedHint {
+            // Clean Solve: 마스터리 카운트 증가
             correctCount += 1
+            masteredCount += 1
+            updateWordFSRS(correct: true)
         } else {
+            // Hint 사용: 큐 뒤로 재배치
             wrongCount += 1
             if let word = currentWord {
                 wrongWords.append(word)
             }
+            reQueueCurrentWord()
+            updateWordFSRS(correct: false)
         }
         
         saveQuizHistory()
         completedCount += 1
         
-        // 성찰 모드로 전환 (즉시 다음으로 넘어가지 않음)
-        sessionState = .reflection
+        // 세션 완료 체크
+        if masteredCount >= dailyGoal {
+            sessionState = .completed
+        } else {
+            sessionState = .reflection
+        }
     }
     
     private func handleWrongInput() {
@@ -236,7 +306,7 @@ class StudySessionViewModel {
         }
     }
     
-    // MARK: - Hint System
+    // MARK: - Hint System (3-Tier)
     func requestHint() {
         guard !isAnswered else { return }
         
@@ -247,19 +317,77 @@ class StudySessionViewModel {
             hintLevel = .firstLetter
         case .firstLetter:
             hintLevel = .fullAnswer
+            hasRevealedAnswer = true  // 정답 보기 = Reveal
         case .fullAnswer:
             break
         }
     }
     
+    /// 힌트 요청 + 입력 클리어 ('1' 키용)
+    func requestHintWithClear() {
+        userInput = ""  // 입력 강제 클리어
+        requestHint()
+    }
+    
+    // MARK: - Re-queue (Perfect Mastery Loop)
+    private func reQueueCurrentWord() {
+        guard let word = currentWord else { return }
+        // 현재 인덱스+3 ~ 끝 사이 랜덤 위치에 삽입
+        let minIndex = min(currentIndex + 3, queue.count)
+        let insertIndex = Int.random(in: minIndex...queue.count)
+        queue.insert(word, at: insertIndex)
+    }
+    
+    // MARK: - FSRS Integration (3-Tier System)
+    private func updateWordFSRS(correct: Bool) {
+        guard let word = currentWord else { return }
+        
+        // Priority: Reveal > Hint > Clean
+        let outcome: ReviewOutcome
+        if hasRevealedAnswer {
+            outcome = .reveal  // 정답 보고 입력
+        } else if usedHint {
+            outcome = .hint    // 힌트 사용 후 정답
+        } else if correct {
+            outcome = .clean   // 순수 기억 인출
+        } else {
+            outcome = .reveal  // 잘못 입력 = 기억 실패
+        }
+        
+        word.applyReviewResult(outcome: outcome)
+    }
+    
+    /// 힌트 버튼 텍스트 (상태에 따라 변경)
+    var hintButtonText: String {
+        switch hintLevel {
+        case .none:
+            return "힌트"
+        case .firstLetter:
+            return "정답"
+        case .fullAnswer:
+            return "정답"
+        }
+    }
+    
+    /// 첫 글자 힌트
+    var firstLetterHint: String? {
+        guard hintLevel == .firstLetter else { return nil }
+        return String(canonicalAnswer.prefix(1))
+    }
+    
+    /// Ghost text 표시 여부
+    var showGhostText: Bool {
+        return hintLevel == .fullAnswer && userInput.isEmpty && !isAnswered
+    }
+    
     var hintText: String? {
-        guard let word = currentWord else { return nil }
+        guard currentWord != nil else { return nil }
         
         switch hintLevel {
         case .none:
             return nil
         case .firstLetter:
-            return String(canonicalAnswer.prefix(1)) // Hint also uses clean answer check logic mostly, but display might vary. Let's use canonical logic.
+            return String(canonicalAnswer.prefix(1))
         case .fullAnswer:
             return canonicalAnswer
         }

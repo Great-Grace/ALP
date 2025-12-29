@@ -5,7 +5,8 @@ import SwiftUI
 import SwiftData
 
 struct StudySessionView: View {
-    var mode: QuizMode // Injected dependency
+    var mode: QuizMode
+    var selectedChapterIds: Set<UUID> // 챕터 필터링용
     
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -65,14 +66,67 @@ struct StudySessionView: View {
         }
         .onAppear {
             viewModel.setup(context: modelContext)
-            viewModel.startSession(mode: mode)
-            isInputFocused = true
+            viewModel.startSession(mode: mode, selectedChapterIds: selectedChapterIds)
+            forceFocus()
         }
-        .alert("End Session?", isPresented: $showExitConfirm) {
-            Button("Resume", role: .cancel) {}
-            Button("End", role: .destructive) { dismiss() }
+        .onChange(of: viewModel.currentIndex) { _, _ in
+            forceFocus()
+        }
+        .onChange(of: viewModel.sessionState) { _, _ in
+            forceFocus()
+        }
+        #if os(macOS)
+        .navigationBarBackButtonHidden(true)
+        .onKeyPress(.leftArrow) {
+            if viewModel.canGoToPrevious {
+                viewModel.goToPrevious()
+                forceFocus()
+            }
+            return .handled
+        }
+        .onKeyPress(.rightArrow) {
+            if viewModel.sessionState == .reflection {
+                viewModel.goToNext()
+                forceFocus()
+            }
+            return .handled
+        }
+        .onKeyPress(.return) {
+            if viewModel.sessionState == .reflection {
+                viewModel.goToNext()
+                forceFocus()
+            }
+            return .handled
+        }
+        .onKeyPress(.space) {
+            if viewModel.sessionState == .reflection {
+                viewModel.goToNext()
+                forceFocus()
+            }
+            return .handled
+        }
+        // '1' 키: 힌트/정답 보기 + 입력 클리어
+        .onKeyPress(KeyEquivalent("1")) {
+            if viewModel.sessionState == .inProgress {
+                viewModel.requestHintWithClear()
+                forceFocus()
+            }
+            return .handled
+        }
+        #endif
+        .alert("학습을 중단하시겠습니까?", isPresented: $showExitConfirm) {
+            Button("계속하기", role: .cancel) {}
+            Button("종료", role: .destructive) { dismiss() }
         } message: {
-            Text("Progress will be saved.")
+            Text("진행 상황은 자동 저장됩니다.")
+        }
+    }
+    
+    // MARK: - Focus Helper
+    private func forceFocus() {
+        isInputFocused = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            isInputFocused = true
         }
     }
     
@@ -84,10 +138,14 @@ struct StudySessionView: View {
             } else if viewModel.isWrong {
                 Color.error.opacity(0.1)
             } else {
+                #if os(macOS)
+                Color(nsColor: .windowBackgroundColor)
+                #else
                 AnimatedGradientBackground(colors: [
                     Color.backgroundPrimary,
                     Color(hex: "F0F3F9")
                 ])
+                #endif
             }
         }
         .ignoresSafeArea()
@@ -119,14 +177,9 @@ struct StudySessionView: View {
             
             Spacer()
             
-            Button(action: { viewModel.skipQuestion() }) {
-                Image(systemName: "forward.fill")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(Color.textSecondary)
-                    .padding(12)
-                    .background(.ultraThinMaterial)
-                    .clipShape(Circle())
-            }
+            // 빈 공간 (스킵 버튼 제거)
+            Color.clear
+                .frame(width: 44, height: 44)
         }
         .padding(.horizontal, Design.spacingL)
         .padding(.top, Design.spacingM)
@@ -148,34 +201,29 @@ struct StudySessionView: View {
         }
     }
     
-    // MARK: - Question Content
+    // MARK: - Question Content (2단 구성)
     private var questionContent: some View {
         ZStack {
             if let word = viewModel.currentWord {
                 VStack(spacing: Design.spacingXL) {
-                    // Korean Meaning
-                    Text(word.korean)
-                        .appFont(AppFont.title1())
-                        .foregroundStyle(Color.textPrimary)
-                        .multilineTextAlignment(.center)
+                    Spacer()
                     
-                    // Arabic Sentence
+                    // TOP: 아랍어 문장 (블러 처리된 정답)
                     if viewModel.sessionState == .reflection {
-                       // Complete Sentence
                         Text(viewModel.displaySentence)
                             .appFont(AppFont.arabicTitle())
                             .foregroundStyle(viewModel.isCorrect ? Color.success : Color.textPrimary)
                             .multilineTextAlignment(.center)
                             .transition(.scale.combined(with: .opacity))
                     } else {
-                        // Sentence with Blank
                         arabicSentenceWithBlank(word: word)
                     }
                     
-                    // Translation (Highlighted)
-                    highlightedKoreanTranslation(fullSentence: word.sentenceKorean, target: word.korean)
+                    // BOTTOM: 한국어 해석 (괄호 제거 + 정답 강조)
+                    processedKoreanTranslation(word.sentenceKorean)
                         .multilineTextAlignment(.center)
-                        .padding(.top, Design.spacingS)
+                    
+                    Spacer()
                 }
                 .padding(Design.spacingL)
                 .offset(x: dragOffset)
@@ -203,60 +251,104 @@ struct StudySessionView: View {
     
     // MARK: - Bottom Controls
     private var bottomControlArea: some View {
-        VStack(spacing: Design.spacingL) {
+        VStack(spacing: Design.spacingM) {
             if viewModel.sessionState == .reflection {
-                // Next Button
-                Button("Next") {
-                    withAnimation {
+                // Next Button (정답 후)
+                VStack(spacing: 8) {
+                    Text("✓ 정답!")
+                        .font(.headline)
+                        .foregroundStyle(Color.success)
+                    
+                    Text("Enter, Space, 또는 → 키로 다음 문제")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    
+                    Button("다음 문제") {
                         viewModel.goToNext()
+                        forceFocus()
                     }
+                    .buttonStyle(PremiumButtonStyle())
                 }
-                .buttonStyle(PremiumButtonStyle())
                 .padding(.horizontal, Design.spacingL)
             } else {
-                // Input Area
-                HStack(spacing: Design.spacingM) {
-                    // Hint Button
-                    Button(action: { viewModel.requestHint() }) {
-                        Image(systemName: "lightbulb.fill")
-                            .font(.title2)
-                            .foregroundStyle(viewModel.hintLevel != .none ? Color.warning : Color.textTertiary)
-                            .padding(16)
-                            .background(Color.white)
-                            .clipShape(Circle())
-                            .shadow(color: Design.shadowSofter.color, radius: 10)
+                // Input Area with Hint ABOVE
+                VStack(spacing: 12) {
+                    // Hint Display (입력창 위에 명확하게 표시)
+                    if viewModel.hintLevel != .none && viewModel.userInput.isEmpty {
+                        HStack {
+                            Text("힌트:")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            
+                            Text(viewModel.hintText ?? "")
+                                .font(AppFont.arabicTitle())
+                                .foregroundStyle(Color.orange)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color.orange.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                     
-                    // Input Field
-                    TextField("", text: $viewModel.userInput)
-                        .font(AppFont.arabicTitle())
-                        .multilineTextAlignment(.center)
-                        .environment(\.layoutDirection, .rightToLeft)
-                        .padding()
-                        .background(Color.white)
-                        .clipShape(RoundedRectangle(cornerRadius: Design.radiusMedium))
-                        .shadow(color: Design.shadowSofter.color, radius: 10)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: Design.radiusMedium)
-                                .stroke(viewModel.isWrong ? Color.error : Color.clear, lineWidth: 2)
-                        )
-                        .focused($isInputFocused)
-                        .submitLabel(.done)
-                        .onSubmit {
-                            // Logic handled by ViewModel auto-validation mostly
+                    // Input Row
+                    HStack(spacing: Design.spacingM) {
+                        // Hint Button
+                        Button(action: { viewModel.requestHint() }) {
+                            VStack(spacing: 4) {
+                                Image(systemName: "lightbulb.fill")
+                                    .font(.title2)
+                                Text(viewModel.hintButtonText)
+                                    .font(.caption)
+                            }
+                            .foregroundStyle(viewModel.hintLevel != .none ? Color.warning : Color.secondary)
+                            .padding(12)
+                            .background(Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .shadow(color: Design.shadowSofter.color, radius: 10)
                         }
+                        .buttonStyle(.plain)
+                        
+                        // Input Field (심플하게)
+                        TextField("아랍어 입력", text: $viewModel.userInput)
+                            .font(AppFont.arabicTitle())
+                            .multilineTextAlignment(.center)
+                            .environment(\.layoutDirection, .rightToLeft)
+                            .focused($isInputFocused)
+                            .textFieldStyle(.plain)
+                            .padding()
+                            .frame(height: 60)
+                            .background(Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: Design.radiusMedium))
+                            .shadow(color: Design.shadowSofter.color, radius: 10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Design.radiusMedium)
+                                    .stroke(viewModel.isWrong ? Color.error : Color.clear, lineWidth: 2)
+                            )
+                    }
                 }
                 .padding(.horizontal, Design.spacingL)
-                
-                Text("Type consonants only")
-                    .appFont(AppFont.minicaps())
-                    .foregroundStyle(Color.textTertiary)
             }
         }
         .padding(.bottom, Design.spacingL)
     }
     
     // MARK: - Helpers
+    
+    /// 한국어 해석: 괄호 제거 + 다중 타겟 단어 Accent 강조 (system .primary 기반)
+    private func processedKoreanTranslation(_ sentence: String) -> Text {
+        let (targets, cleaned) = sentence.extractAllParenthesisContent()
+        
+        guard !targets.isEmpty else {
+            return Text(sentence.withoutQuotes)
+                .font(.title2)
+                .foregroundStyle(.primary)
+        }
+        
+        let attributed = cleaned.highlightedAttributedString(targets: targets, highlightColor: .accent)
+        return Text(attributed)
+            .font(.title2)
+            .foregroundStyle(.primary)
+    }
     
     private func highlightedKoreanTranslation(fullSentence: String, target: String) -> Text {
         var attributedString = AttributedString(fullSentence)

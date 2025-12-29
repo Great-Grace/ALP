@@ -13,8 +13,20 @@ struct ArabicLearningApp: App {
             VocabularyBook.self,
             Chapter.self,
             Word.self,
-            QuizHistory.self
+            QuizHistory.self,
+            UserProgress.self,
+            VerbForm.self
         ])
+        // TODO: [CloudKit] Apple Developer Program 가입 후 활성화
+        // CloudKit 설정: iCloud 자동 동기화 활성화
+        // ⚠️ Xcode에서 iCloud Capability 설정 필요 (Target > Signing & Capabilities > iCloud > CloudKit)
+        // let modelConfiguration = ModelConfiguration(
+        //     schema: schema,
+        //     isStoredInMemoryOnly: false,
+        //     cloudKitDatabase: .private("iCloud.com.taewoo.ArabicLearning")
+        // )
+        
+        // 현재: 로컬 전용 (FSRS 개인화 복습 정상 작동)
         let modelConfiguration = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: false
