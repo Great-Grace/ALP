@@ -1,5 +1,5 @@
 // VerbForm.swift
-// 동사 파생형 모델 - Dual-Column Quiz 전용
+// 동사 파생형 모델 - Enriched Semantic Data Support
 
 import Foundation
 import SwiftData
@@ -22,8 +22,8 @@ final class VerbForm {
     /// 패턴 (아랍어) - "فَعَلَ", "فَعَّلَ", ...
     var pattern: String = ""
     
-    /// 뉘앙스/의미 (한국어) - "사동/강조", "상호동작", ...
-    var nuanceKorean: String = ""
+    /// 뉘앙스/의미 (한국어) - 기본 형태 뉘앙스 "사동/강조", "상호동작", ...
+    var nuanceBasic: String = ""
     
     /// 아랍어 단어 (완전 모음) - "كَتَبَ"
     var arabicWord: String = ""
@@ -31,17 +31,50 @@ final class VerbForm {
     /// 아랍어 단어 (모음 제거, 검색용) - "كتب"
     var arabicWordClean: String = ""
     
-    /// 한국어 뜻 - "쓰다"
+    /// 한국어 뜻 (레거시) - "쓰다"
     var meaningKorean: String = ""
     
     /// CAMeL 검증 여부
     var verified: Bool = false
+    
+    // MARK: - Enriched Data (NEW)
+    
+    /// 주요 의미 (한국어, 1-2단어) - "쓰다"
+    var meaningPrimary: String?
+    
+    /// 보조 의미 (여러 용법) - "기록하다; 저술하다"
+    var meaningSecondary: String?
+    
+    /// 상세 뉘앙스 설명 (한국어) - "타동사이며, 물리적 쓰기 행위를 나타냄"
+    var nuanceKorean: String?
+    
+    /// 예문 (모음부호 포함 아랍어)
+    var exampleSentence: String?
+    
+    /// 예문 한국어 번역
+    var exampleSentenceMeaning: String?
     
     // MARK: - Computed (Presentation Layer)
     
     /// 형태 라벨 (동적 생성) - "1형", "2형", ...
     var formLabel: String {
         return "\(formNumber)형"
+    }
+    
+    /// 표시용 의미 (Primary 우선, 없으면 Legacy)
+    var displayMeaning: String {
+        if let primary = meaningPrimary, !primary.isEmpty {
+            return primary
+        }
+        return meaningKorean
+    }
+    
+    /// 표시용 뉘앙스 (상세 설명 우선)
+    var displayNuance: String {
+        if let nuance = nuanceKorean, !nuance.isEmpty {
+            return nuance
+        }
+        return nuanceBasic
     }
     
     // MARK: - FSRS (Dual-Column Quiz용)
@@ -87,21 +120,33 @@ final class VerbForm {
         root: String,
         formNumber: Int,
         pattern: String,
-        nuanceKorean: String,
+        nuanceBasic: String,
         arabicWord: String,
         meaningKorean: String = "",
-        verified: Bool = false
+        verified: Bool = false,
+        // Enriched data
+        meaningPrimary: String? = nil,
+        meaningSecondary: String? = nil,
+        nuanceKorean: String? = nil,
+        exampleSentence: String? = nil,
+        exampleSentenceMeaning: String? = nil
     ) {
         self.id = UUID()
         self.root = root
         self.rootClean = root.replacingOccurrences(of: "-", with: "").withoutDiacritics
         self.formNumber = formNumber
         self.pattern = pattern
-        self.nuanceKorean = nuanceKorean
+        self.nuanceBasic = nuanceBasic
         self.arabicWord = arabicWord
         self.arabicWordClean = arabicWord.withoutDiacritics
         self.meaningKorean = meaningKorean
         self.verified = verified
+        // Enriched
+        self.meaningPrimary = meaningPrimary
+        self.meaningSecondary = meaningSecondary
+        self.nuanceKorean = nuanceKorean
+        self.exampleSentence = exampleSentence
+        self.exampleSentenceMeaning = exampleSentenceMeaning
     }
     
     // MARK: - FSRS Apply

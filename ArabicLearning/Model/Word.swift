@@ -52,6 +52,14 @@ final class Word {
     /// 3: 약동사(Hollow/Defective), 불규칙 복수, Form 2-10 심화
     var complexityLevel: Int = 1
     
+    // MARK: - Curriculum Level
+    
+    /// Level ID for curriculum progression (default: 1)
+    var levelID: Int = 1
+    
+    /// Relationship to StudyLevel
+    var level: StudyLevel?
+    
     /// 형태론 유형
     /// Sound(완전), Hollow(속빈), Defective(불완전), Hamzated(함자), Rigid(변하지않는)
     var morphologyTypeRaw: String?
@@ -117,6 +125,9 @@ final class Word {
     // Relationship - 퀴즈 기록
     @Relationship(deleteRule: .cascade, inverse: \QuizHistory.word)
     var quizHistory: [QuizHistory] = []
+    
+    // Relationship - Appearing Articles (Many-to-Many)
+    var articles: [Article]? = []
     
     init(
         arabic: String,

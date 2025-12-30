@@ -25,6 +25,11 @@ class HomeViewModel {
     var availableChapters: [Chapter] = []
     var selectedChapterIds: Set<UUID> = []
     
+    // Reader / Library
+    var articles: [Article] = []
+    var showReader: Bool = false
+    var selectedArticle: Article?
+    
     var selectedChaptersCount: Int {
         selectedChapterIds.isEmpty ? availableChapters.count : selectedChapterIds.count
     }
@@ -40,6 +45,7 @@ class HomeViewModel {
         self.modelContext = context
         refreshData()
         loadChapters()
+        loadArticles()
     }
     
     func refreshData() {
@@ -126,6 +132,44 @@ class HomeViewModel {
         guard todayTotal > 0 else { return "-" }
         let accuracy = Double(todayCorrect) / Double(todayTotal) * 100
         return "\(Int(accuracy))%"
+    }
+    
+    // MARK: - Library & Articles
+    func loadArticles() {
+        guard let context = modelContext else { return }
+        let descriptor = FetchDescriptor<Article>(sortBy: [SortDescriptor(\.addedAt, order: .reverse)])
+        articles = (try? context.fetch(descriptor)) ?? []
+        
+        // Auto-create sample if empty
+        if articles.isEmpty {
+            createSampleArticle(context: context)
+        }
+    }
+    
+    private func createSampleArticle(context: ModelContext) {
+        // Create dummy tokens for sample
+        let tokens = [
+            ArticleToken(text: "أذهب", cleanText: "أذهب", rootId: nil, isTargetWord: true, punctuation: nil),
+            ArticleToken(text: "إلى", cleanText: "إلى", rootId: nil, isTargetWord: false, punctuation: nil),
+            ArticleToken(text: "المدرسة", cleanText: "المدرسة", rootId: nil, isTargetWord: true, punctuation: "."),
+            ArticleToken(text: "كل", cleanText: "كل", rootId: nil, isTargetWord: false, punctuation: nil),
+            ArticleToken(text: "يوم", cleanText: "يوم", rootId: nil, isTargetWord: true, punctuation: ".")
+        ]
+        
+        let sample = Article(
+            title: "School Life",
+            tokens: tokens,
+            difficultyLevel: 1,
+            source: "System Generated"
+        )
+        context.insert(sample)
+        try? context.save()
+        articles = [sample]
+    }
+    
+    func openArticle(_ article: Article) {
+        self.selectedArticle = article
+        self.showReader = true
     }
 }
 

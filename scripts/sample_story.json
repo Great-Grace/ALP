@@ -1,0 +1,143 @@
+{
+  "title": "قصة الطالب",
+  "difficulty": 1,
+  "source": "Generated",
+  "tokens": [
+    {
+      "id": "6a505a46-1248-4ca6-a88a-c3727133e4bd",
+      "text": "ذهب",
+      "cleanText": "ذهب",
+      "rootId": "be0d5854-9f6e-5a6b-b2c9-672dbfe20e2e",
+      "isTargetWord": true,
+      "punctuation": null
+    },
+    {
+      "id": "4ee8572c-06b1-44db-9c39-f6f27ea4fcec",
+      "text": "الطالب",
+      "cleanText": "الطالب",
+      "rootId": null,
+      "isTargetWord": true,
+      "punctuation": null
+    },
+    {
+      "id": "1882fa5d-0ebd-422c-ba1e-46b36d68cb31",
+      "text": "إلى",
+      "cleanText": "إلى",
+      "rootId": null,
+      "isTargetWord": true,
+      "punctuation": null
+    },
+    {
+      "id": "03ee4511-92dd-4c88-a469-2ce331ecee89",
+      "text": "المدرسة",
+      "cleanText": "المدرسة",
+      "rootId": null,
+      "isTargetWord": true,
+      "punctuation": null
+    },
+    {
+      "id": "4fe81484-28d6-405d-a1ba-43d4d7bf1f35",
+      "text": "في",
+      "cleanText": "في",
+      "rootId": null,
+      "isTargetWord": true,
+      "punctuation": null
+    },
+    {
+      "id": "5ea87a79-abcf-42cc-aa09-77b42b1e5898",
+      "text": "الصباح",
+      "cleanText": "الصباح",
+      "rootId": null,
+      "isTargetWord": true,
+      "punctuation": "."
+    },
+    {
+      "id": "6627142f-115f-46e8-9fa4-a1093db555ef",
+      "text": "كتب",
+      "cleanText": "كتب",
+      "rootId": "6d882d88-25e6-5d53-aea2-e0a0097beab0",
+      "isTargetWord": true,
+      "punctuation": null
+    },
+    {
+      "id": "d7faded5-95d4-4121-9f7a-c718f7f20fb3",
+      "text": "الولد",
+      "cleanText": "الولد",
+      "rootId": null,
+      "isTargetWord": true,
+      "punctuation": null
+    },
+    {
+      "id": "53fa9678-5644-4130-a7eb-f18f207b33e8",
+      "text": "رسالة",
+      "cleanText": "رسالة",
+      "rootId": null,
+      "isTargetWord": true,
+      "punctuation": null
+    },
+    {
+      "id": "8509df93-17ff-4b51-a1c7-fc6c9e37086c",
+      "text": "جميلة",
+      "cleanText": "جميلة",
+      "rootId": null,
+      "isTargetWord": true,
+      "punctuation": null
+    },
+    {
+      "id": "c088fdee-1174-4bfe-a5c8-0f88e6df7b43",
+      "text": "لأمه",
+      "cleanText": "لأمه",
+      "rootId": null,
+      "isTargetWord": true,
+      "punctuation": "."
+    },
+    {
+      "id": "51975437-25d6-4032-b008-2404654236c1",
+      "text": "جلس",
+      "cleanText": "جلس",
+      "rootId": "c72b2f7e-4833-539a-9e9a-b79edb7f48e6",
+      "isTargetWord": true,
+      "punctuation": null
+    },
+    {
+      "id": "98c00a3e-9e05-4a0e-bf48-0275720e2098",
+      "text": "المعلم",
+      "cleanText": "المعلم",
+      "rootId": null,
+      "isTargetWord": true,
+      "punctuation": null
+    },
+    {
+      "id": "650dcdbb-1a36-47b9-bf65-5c2cfbe76205",
+      "text": "في",
+      "cleanText": "في",
+      "rootId": null,
+      "isTargetWord": true,
+      "punctuation": null
+    },
+    {
+      "id": "38075293-406f-44c5-b389-bf777b331aaf",
+      "text": "الفصل",
+      "cleanText": "الفصل",
+      "rootId": null,
+      "isTargetWord": true,
+      "punctuation": null
+    },
+    {
+      "id": "88af5a1d-03c1-476f-9cac-15883c05a32d",
+      "text": "وبدأ",
+      "cleanText": "وبدأ",
+      "rootId": null,
+      "isTargetWord": true,
+      "punctuation": null
+    },
+    {
+      "id": "dbf55461-7f4f-41df-80af-7b81fd8f4ef1",
+      "text": "الدرس",
+      "cleanText": "الدرس",
+      "rootId": null,
+      "isTargetWord": true,
+      "punctuation": "."
+    }
+  ]
+}

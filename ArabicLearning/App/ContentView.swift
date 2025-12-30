@@ -1,5 +1,5 @@
 // ContentView - Main Navigation
-// 2탭 구조: 홈, 관리
+// 3탭 구조: 커리큘럼, 복습, 관리
 
 import SwiftUI
 import SwiftData
@@ -7,9 +7,14 @@ import SwiftData
 struct ContentView: View {
     var body: some View {
         TabView {
+            CurriculumView()
+                .tabItem {
+                    Label("커리큘럼", systemImage: "books.vertical.fill")
+                }
+            
             HomeView()
                 .tabItem {
-                    Label("홈", systemImage: "house.fill")
+                    Label("복습", systemImage: "arrow.clockwise.circle.fill")
                 }
             
             AdminView()
@@ -22,5 +27,6 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .modelContainer(for: [VocabularyBook.self, Chapter.self, Word.self, QuizHistory.self])
+        .modelContainer(for: [VocabularyBook.self, Chapter.self, Word.self, QuizHistory.self, StudyLevel.self])
 }
+

@@ -1,0 +1,11 @@
+# Requirements for Arabic Learning Scripts
+# Install with: pip install -r requirements.txt
+
+# LLM API (New official package)
+google-genai>=1.0.0
+
+# Data Processing
+pandas>=2.0.0
+
+# Progress Bar
+tqdm>=4.65.0

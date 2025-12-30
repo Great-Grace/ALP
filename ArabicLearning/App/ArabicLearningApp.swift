@@ -4,9 +4,27 @@
 import SwiftUI
 import SwiftData
 
+// MARK: - Global State for Data Warning
+
+/// Observable class to track if app is running in in-memory (data loss) mode
+@Observable
+class AppState {
+    static let shared = AppState()
+    
+    /// True if database failed and we're using in-memory fallback
+    var isInMemoryMode: Bool = false
+    
+    /// Error message if database failed
+    var dbErrorMessage: String?
+    
+    private init() {}
+}
+
 @main
 struct ArabicLearningApp: App {
     @State private var isLoading = true
+    
+    // MARK: - Model Container (Graceful Error Handling)
     
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
@@ -15,27 +33,43 @@ struct ArabicLearningApp: App {
             Word.self,
             QuizHistory.self,
             UserProgress.self,
-            VerbForm.self
+            VerbForm.self,
+            Article.self,
+            StudyLevel.self,
+            ReadingPassage.self
         ])
-        // TODO: [CloudKit] Apple Developer Program 가입 후 활성화
-        // CloudKit 설정: iCloud 자동 동기화 활성화
-        // ⚠️ Xcode에서 iCloud Capability 설정 필요 (Target > Signing & Capabilities > iCloud > CloudKit)
-        // let modelConfiguration = ModelConfiguration(
-        //     schema: schema,
-        //     isStoredInMemoryOnly: false,
-        //     cloudKitDatabase: .private("iCloud.com.taewoo.ArabicLearning")
-        // )
         
-        // 현재: 로컬 전용 (FSRS 개인화 복습 정상 작동)
-        let modelConfiguration = ModelConfiguration(
+        // Primary: Persistent Storage
+        let persistentConfig = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: false
         )
         
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            let container = try ModelContainer(for: schema, configurations: [persistentConfig])
+            AppState.shared.isInMemoryMode = false
+            return container
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            // ⚠️ Graceful Fallback: In-Memory Container
+            print("⚠️ [CRITICAL] Failed to create persistent ModelContainer: \(error)")
+            print("⚠️ Falling back to in-memory storage. Data will NOT be saved.")
+            
+            // Mark app as in-memory mode for warning UI
+            AppState.shared.isInMemoryMode = true
+            AppState.shared.dbErrorMessage = error.localizedDescription
+            
+            let memoryConfig = ModelConfiguration(
+                schema: schema,
+                isStoredInMemoryOnly: true
+            )
+            
+            do {
+                return try ModelContainer(for: schema, configurations: [memoryConfig])
+            } catch {
+                print("❌ [FATAL] Even in-memory container failed: \(error)")
+                let minimalSchema = Schema([Word.self])
+                return try! ModelContainer(for: minimalSchema, configurations: [ModelConfiguration(isStoredInMemoryOnly: true)])
+            }
         }
     }()
     
@@ -51,16 +85,11 @@ struct ArabicLearningApp: App {
                 }
             }
             .animation(.easeInOut(duration: 0.5), value: isLoading)
+            .environment(AppState.shared)  // Pass AppState to all views
             .onAppear {
-                // Perform data migration
+                // Data migration check (light operation)
                 DataMigrationManager.performMigrationIfNeeded(context: sharedModelContainer.mainContext)
-                
-                // Simulate loading delay for smooth intro experience
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                    withAnimation {
-                        isLoading = false
-                    }
-                }
+                // Note: Heavy loading is now handled by IntroView + DataLoaderService
             }
             #if os(macOS)
             .frame(minWidth: 900, minHeight: 600)
@@ -73,4 +102,3 @@ struct ArabicLearningApp: App {
         #endif
     }
 }
-

@@ -39,6 +39,9 @@ struct HomeView: View {
                         // Stats Grid
                         statsGrid
                         
+                        // Library (Reader)
+                        librarySection
+                        
                         // Streak / Progress
                         streakSection
                     }
@@ -86,6 +89,11 @@ struct HomeView: View {
                 )
             }
             #endif
+            .navigationDestination(isPresented: $viewModel.showReader) {
+                if let article = viewModel.selectedArticle {
+                    InteractiveReadingView(article: article)
+                }
+            }
         }
     }
     
@@ -309,6 +317,48 @@ struct HomeView: View {
                 icon: "chart.bar.fill",
                 color: .warning
             )
+        }
+    }
+    
+    // MARK: - Library Section
+    private var librarySection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Library")
+                    .appFont(AppFont.title2())
+                    .foregroundStyle(Color.textPrimary)
+                Spacer()
+                Button("View All") {
+                    // Navigate to full library
+                }
+                .font(.caption)
+                .foregroundStyle(Color.accent)
+            }
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(viewModel.articles) { article in
+                        Button(action: { viewModel.openArticle(article) }) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(article.title)
+                                    .appFont(AppFont.headline())
+                                    .foregroundStyle(Color.textPrimary)
+                                    .lineLimit(1)
+                                
+                                Text(article.content)
+                                    .appFont(AppFont.body())
+                                    .foregroundStyle(Color.textSecondary)
+                                    .lineLimit(2)
+                                    .multilineTextAlignment(.leading)
+                            }
+                            .padding()
+                            .frame(width: 200, height: 120)
+                            .glassyCard(cornerRadius: Design.radiusMedium)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
         }
     }
     
