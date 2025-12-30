@@ -1,5 +1,6 @@
 // DualColumnQuizView.swift
 // 2-Column Selection Quiz UI for Arabic Morphology
+// QA Hotfix: No answer spoiling, retry mode, Type 3 meaning display
 
 import SwiftUI
 
@@ -10,12 +11,13 @@ struct DualColumnQuizView: View {
     // MARK: - State
     @State private var selectedLeftID: String? = nil
     @State private var selectedRightID: String? = nil
-    @State private var isSubmitted: Bool = false
-    @State private var isCorrect: Bool = false
-    @State private var showShake: Bool = false
+    @State private var attemptCount: Int = 0
+    @State private var showError: Bool = false
+    @State private var isSuccess: Bool = false
+    @State private var hasCompleted: Bool = false  // Prevent double-skip
     
     // MARK: - Design Constants
-    private let arabicFont: Font = .system(size: 36, weight: .medium, design: .serif)
+    private let arabicFont: Font = .custom("Amiri-Bold", size: 36)
     private let koreanFont: Font = .system(size: 16, weight: .medium)
     private let buttonFont: Font = .system(size: 20, weight: .medium)
     
@@ -37,7 +39,6 @@ struct DualColumnQuizView: View {
                     label: quiz.leftColumn.label,
                     options: quiz.leftColumn.options,
                     selectedID: $selectedLeftID,
-                    correctID: quiz.correctPair.0,
                     isArabic: false
                 )
                 
@@ -51,7 +52,6 @@ struct DualColumnQuizView: View {
                     label: quiz.rightColumn.label,
                     options: quiz.rightColumn.options,
                     selectedID: $selectedRightID,
-                    correctID: quiz.correctPair.1,
                     isArabic: quiz.rightColumn.label == "어근" || quiz.rightColumn.label == "결과"
                 )
             }
@@ -65,7 +65,7 @@ struct DualColumnQuizView: View {
                 .padding(.horizontal, 24)
                 .padding(.bottom, 32)
         }
-        .modifier(ShakeEffect(animatableData: showShake ? 1 : 0))
+        .modifier(ShakeEffect(animatableData: showError ? 1 : 0))
     }
     
     // MARK: - Question Card
@@ -88,20 +88,39 @@ struct DualColumnQuizView: View {
                 .multilineTextAlignment(.center)
                 .environment(\.layoutDirection, .rightToLeft)
             
-            // Sub Text (Korean hint, if exists)
+            // Sub Text (Korean hint) - ALWAYS show for Type 3
             if let subText = quiz.displayCard.subText {
                 Text(subText)
                     .font(koreanFont)
                     .foregroundColor(.secondary)
+            } else if quiz.type == .constructiveSynthesis {
+                // Type 3: Show target meaning hint
+                Text(targetMeaningHint)
+                    .font(.subheadline)
+                    .foregroundColor(.orange)
+                    .italic()
+            }
+            
+            // Attempt indicator
+            if attemptCount > 0 && !isSuccess {
+                Text("시도: \(attemptCount)회")
+                    .font(.caption2)
+                    .foregroundColor(.red)
             }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white.opacity(0.95))
+                .fill(isSuccess ? Color.green.opacity(0.1) : Color.white.opacity(0.95))
                 .shadow(color: .black.opacity(0.08), radius: 12, y: 4)
         )
+    }
+    
+    // Hint for Type 3 Construction
+    private var targetMeaningHint: String {
+        // Extract from correct answer if available
+        "→ 어떤 형태로 변환될까요?"
     }
     
     // MARK: - Column View
@@ -109,7 +128,6 @@ struct DualColumnQuizView: View {
         label: String,
         options: [QuizOption],
         selectedID: Binding<String?>,
-        correctID: String,
         isArabic: Bool
     ) -> some View {
         VStack(spacing: 12) {
@@ -125,53 +143,53 @@ struct DualColumnQuizView: View {
                 optionButton(
                     option: option,
                     isSelected: selectedID.wrappedValue == option.id,
-                    isCorrectOption: option.id == correctID,
                     isArabic: isArabic
                 ) {
-                    if !isSubmitted {
-                        withAnimation(.easeInOut(duration: 0.15)) {
-                            selectedID.wrappedValue = option.id
-                        }
-                        hapticLight()
+                    guard !isSuccess else { return }
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        selectedID.wrappedValue = option.id
+                        showError = false  // Clear error on new selection
                     }
+                    hapticLight()
                 }
             }
         }
         .frame(maxWidth: .infinity)
     }
     
-    // MARK: - Option Button
+    // MARK: - Option Button (NO correct answer reveal on error!)
     private func optionButton(
         option: QuizOption,
         isSelected: Bool,
-        isCorrectOption: Bool,
         isArabic: Bool,
         action: @escaping () -> Void
     ) -> some View {
-        Button(action: action) {
+        let isWrongSelection = showError && isSelected
+        
+        return Button(action: action) {
             Text(option.text)
-                .font(isArabic ? .system(size: 24, weight: .medium, design: .serif) : buttonFont)
-                .foregroundColor(buttonTextColor(isSelected: isSelected, isCorrectOption: isCorrectOption))
+                .font(isArabic ? .custom("Amiri-Regular", size: 24) : buttonFont)
+                .foregroundColor(buttonTextColor(isSelected: isSelected, isWrong: isWrongSelection))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(buttonBackground(isSelected: isSelected, isCorrectOption: isCorrectOption))
+                .background(buttonBackground(isSelected: isSelected, isWrong: isWrongSelection))
                 .overlay(
                     RoundedRectangle(cornerRadius: 14)
-                        .stroke(buttonBorderColor(isSelected: isSelected, isCorrectOption: isCorrectOption), lineWidth: isSelected ? 3 : 1)
+                        .stroke(buttonBorderColor(isSelected: isSelected, isWrong: isWrongSelection), lineWidth: isSelected ? 3 : 1)
                 )
                 .cornerRadius(14)
                 .environment(\.layoutDirection, isArabic ? .rightToLeft : .leftToRight)
         }
         .buttonStyle(.plain)
-        .disabled(isSubmitted)
+        .disabled(isSuccess)
     }
     
     // MARK: - Submit Button
     private var submitButton: some View {
         Button(action: submitAnswer) {
             HStack {
-                if isSubmitted {
-                    Image(systemName: isCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
+                if isSuccess {
+                    Image(systemName: "checkmark.circle.fill")
                 }
                 Text(submitButtonText)
                     .fontWeight(.bold)
@@ -190,21 +208,23 @@ struct DualColumnQuizView: View {
     // MARK: - Helpers
     
     private var canSubmit: Bool {
-        if isSubmitted { return true }
+        if isSuccess { return false }
         return selectedLeftID != nil && selectedRightID != nil
     }
     
     private var submitButtonText: String {
-        if isSubmitted {
-            return isCorrect ? "정답! 🎉" : "오답 - 다시 시도"
+        if isSuccess {
+            return "정답! 🎉"
+        }
+        if showError {
+            return "다시 시도"
         }
         return "확인"
     }
     
     private var submitButtonBackground: Color {
-        if isSubmitted {
-            return isCorrect ? .green : .red
-        }
+        if isSuccess { return .green }
+        if showError { return .orange }
         return canSubmit ? .blue : .gray
     }
     
@@ -224,29 +244,23 @@ struct DualColumnQuizView: View {
         }
     }
     
-    // MARK: - Button Styling
+    // MARK: - Button Styling (NO GREEN for wrong answers!)
     
-    private func buttonTextColor(isSelected: Bool, isCorrectOption: Bool) -> Color {
-        if isSubmitted {
-            if isCorrectOption { return .white }
-            if isSelected { return .white }
-        }
+    private func buttonTextColor(isSelected: Bool, isWrong: Bool) -> Color {
+        if isSuccess && isSelected { return .white }
+        if isWrong { return .white }
         return isSelected ? .blue : .primary
     }
     
-    private func buttonBackground(isSelected: Bool, isCorrectOption: Bool) -> Color {
-        if isSubmitted {
-            if isCorrectOption { return .green }
-            if isSelected && !isCorrectOption { return .red.opacity(0.9) }
-        }
+    private func buttonBackground(isSelected: Bool, isWrong: Bool) -> Color {
+        if isSuccess && isSelected { return .green }
+        if isWrong { return .red.opacity(0.8) }
         return isSelected ? .blue.opacity(0.1) : Color.gray.opacity(0.15)
     }
     
-    private func buttonBorderColor(isSelected: Bool, isCorrectOption: Bool) -> Color {
-        if isSubmitted {
-            if isCorrectOption { return .green }
-            if isSelected { return .red }
-        }
+    private func buttonBorderColor(isSelected: Bool, isWrong: Bool) -> Color {
+        if isSuccess && isSelected { return .green }
+        if isWrong { return .red }
         return isSelected ? .blue : .gray.opacity(0.3)
     }
     
@@ -254,16 +268,7 @@ struct DualColumnQuizView: View {
     
     private func submitAnswer() {
         guard let leftID = selectedLeftID, let rightID = selectedRightID else { return }
-        
-        if isSubmitted && !isCorrect {
-            // Retry
-            withAnimation {
-                isSubmitted = false
-                selectedLeftID = nil
-                selectedRightID = nil
-            }
-            return
-        }
+        guard !hasCompleted else { return }  // Prevent double-skip
         
         let correct = DualColumnQuizGenerator.shared.validateAnswer(
             quiz: quiz,
@@ -271,23 +276,34 @@ struct DualColumnQuizView: View {
             rightSelection: rightID
         )
         
-        withAnimation(.easeInOut(duration: 0.3)) {
-            isSubmitted = true
-            isCorrect = correct
-        }
-        
         if correct {
+            // SUCCESS
+            withAnimation(.easeInOut(duration: 0.3)) {
+                isSuccess = true
+                showError = false
+            }
             hapticSuccess()
+            
+            // Single completion trigger with debounce
+            hasCompleted = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                 onComplete(true)
             }
         } else {
-            hapticError()
-            withAnimation(.default) {
-                showShake = true
+            // FAILURE - Just shake, don't reveal answer
+            attemptCount += 1
+            withAnimation(.easeInOut(duration: 0.1)) {
+                showError = true
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                showShake = false
+            hapticError()
+            
+            // Shake animation
+            withAnimation(.default) {
+                showError = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                // Keep showError true so user sees red selection
+                // Don't reset - let them pick new options
             }
         }
     }
@@ -352,38 +368,6 @@ struct ShakeEffect: GeometryEffect {
                 ]
             ),
             correctPair: ("f2", "n2")
-        ),
-        onComplete: { _ in }
-    )
-    .padding()
-    .background(Color.gray.opacity(0.15))
-}
-
-#Preview("Word Deconstruction") {
-    DualColumnQuizView(
-        quiz: DualColumnQuizItem(
-            id: "preview_2",
-            type: .wordDeconstruction,
-            displayCard: DisplayCard(mainText: "تَكَاتَبَ", subText: nil),
-            leftColumn: ColumnSelector(
-                label: "형태",
-                options: [
-                    QuizOption(id: "f3", text: "3형"),
-                    QuizOption(id: "f5", text: "5형"),
-                    QuizOption(id: "f6", text: "6형"),
-                    QuizOption(id: "f8", text: "8형")
-                ]
-            ),
-            rightColumn: ColumnSelector(
-                label: "어근",
-                options: [
-                    QuizOption(id: "r0", text: "ع-ل-م"),
-                    QuizOption(id: "r1", text: "ك-ت-ب"),
-                    QuizOption(id: "r2", text: "ف-ه-م"),
-                    QuizOption(id: "r3", text: "س-م-ع")
-                ]
-            ),
-            correctPair: ("f6", "r1")
         ),
         onComplete: { _ in }
     )

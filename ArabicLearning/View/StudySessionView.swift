@@ -7,6 +7,7 @@ import SwiftData
 struct StudySessionView: View {
     var mode: QuizMode
     var selectedChapterIds: Set<UUID> // 챕터 필터링용
+    var studyLimit: Int = 20  // 학습 개수
     
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -52,7 +53,11 @@ struct StudySessionView: View {
                         wrongCount: viewModel.wrongCount,
                         wrongWords: viewModel.wrongWords,
                         accuracy: viewModel.accuracy,
-                        onDismiss: { dismiss() }
+                        onDismiss: { dismiss() },
+                        onContinue: { additionalCount in
+                            // Restart session with additional words
+                            viewModel.startSession(mode: mode, selectedChapterIds: selectedChapterIds, limit: additionalCount)
+                        }
                     )
                 }
                 
@@ -66,7 +71,7 @@ struct StudySessionView: View {
         }
         .onAppear {
             viewModel.setup(context: modelContext)
-            viewModel.startSession(mode: mode, selectedChapterIds: selectedChapterIds)
+            viewModel.startSession(mode: mode, selectedChapterIds: selectedChapterIds, limit: studyLimit)
             forceFocus()
         }
         .onChange(of: viewModel.currentIndex) { _, _ in
@@ -324,6 +329,25 @@ struct StudySessionView: View {
                                 RoundedRectangle(cornerRadius: Design.radiusMedium)
                                     .stroke(viewModel.isWrong ? Color.error : Color.clear, lineWidth: 2)
                             )
+                            #if os(macOS)
+                            .onKeyPress(KeyEquivalent("1")) {
+                                viewModel.requestHintWithClear()
+                                return .handled
+                            }
+                            .onKeyPress(.return) {
+                                if viewModel.sessionState == .reflection {
+                                    viewModel.goToNext()
+                                }
+                                return .handled
+                            }
+                            .onKeyPress(.space) {
+                                if viewModel.sessionState == .reflection {
+                                    viewModel.goToNext()
+                                    return .handled
+                                }
+                                return .ignored  // Allow space in text input
+                            }
+                            #endif
                     }
                 }
                 .padding(.horizontal, Design.spacingL)

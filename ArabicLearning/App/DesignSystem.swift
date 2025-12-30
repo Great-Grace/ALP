@@ -60,9 +60,7 @@ extension Color {
 
 // MARK: - App Font System
 struct AppFont {
-    // English & Numbers (San Francisco / System)
-    // Arabic (System Arabic)
-    
+    // English & Numbers (System Font)
     static func title1() -> Font { .system(size: 34, weight: .bold, design: .rounded) }
     static func title2() -> Font { .system(size: 28, weight: .bold, design: .rounded) }
     static func title3() -> Font { .system(size: 22, weight: .semibold, design: .rounded) }
@@ -70,9 +68,38 @@ struct AppFont {
     static func body() -> Font { .system(size: 17, weight: .regular, design: .default) }
     static func minicaps() -> Font { .system(size: 12, weight: .bold, design: .default).smallCaps() }
     
-    // Arabic Specific Font Sizes (Usually need to be larger)
-    static func arabicTitle() -> Font { .system(size: 40, weight: .bold, design: .rounded) }
-    static func arabicBody() -> Font { .system(size: 28, weight: .medium, design: .rounded) }
+    // MARK: - Arabic Custom Font (Amiri)
+    // 1.3x larger than Korean/English for visual balance
+    
+    /// 아랍어 대제목 (퀴즈 카드 메인)
+    static func arabicLarge() -> Font {
+        .custom("Amiri-Bold", size: 44)  // 34 * 1.3
+    }
+    
+    /// 아랍어 제목
+    static func arabicTitle() -> Font {
+        .custom("Amiri-Bold", size: 36)  // 28 * 1.3
+    }
+    
+    /// 아랍어 본문
+    static func arabicBody() -> Font {
+        .custom("Amiri-Regular", size: 28)  // 22 * 1.3
+    }
+    
+    /// 아랍어 예문
+    static func arabicSentence() -> Font {
+        .custom("Amiri-Regular", size: 24)  // 18 * 1.3
+    }
+    
+    /// 아랍어 버튼/선택지
+    static func arabicButton() -> Font {
+        .custom("Amiri-Regular", size: 22)  // 17 * 1.3
+    }
+    
+    /// 아랍어 캡션
+    static func arabicCaption() -> Font {
+        .custom("Amiri-Regular", size: 18)  // 14 * 1.3
+    }
 }
 
 // MARK: - Design Constants

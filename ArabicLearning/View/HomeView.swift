@@ -55,11 +55,11 @@ struct HomeView: View {
             }
             #if os(iOS)
             .fullScreenCover(isPresented: $viewModel.showStudySession) {
-                UnifiedStudySessionView(quizState: .novice)
+                StudySessionView(mode: viewModel.selectedQuizMode, selectedChapterIds: viewModel.selectedChapterIds, studyLimit: viewModel.selectedStudyCount)
             }
             #else
             .navigationDestination(isPresented: $viewModel.showStudySession) {
-                UnifiedStudySessionView(quizState: .novice)
+                StudySessionView(mode: viewModel.selectedQuizMode, selectedChapterIds: viewModel.selectedChapterIds, studyLimit: viewModel.selectedStudyCount)
             }
             #endif
             .onChange(of: viewModel.showStudySession) { _, isShowing in
@@ -130,49 +130,78 @@ struct HomeView: View {
     
     // MARK: - Main Action Card
     private var startStudyCard: some View {
-        Button(action: { viewModel.showStudySession = true }) {
-            HStack {
-                VStack(alignment: .leading, spacing: Design.spacingS) {
-                    Text("Today's Session")
-                        .appFont(AppFont.headline())
-                        .foregroundStyle(.white.opacity(0.9))
+        VStack(spacing: 16) {
+            Button(action: { viewModel.showStudySession = true }) {
+                HStack {
+                    VStack(alignment: .leading, spacing: Design.spacingS) {
+                        Text("Today's Session")
+                            .appFont(AppFont.headline())
+                            .foregroundStyle(.white.opacity(0.9))
+                        
+                        Text("Continue Learning")
+                            .appFont(AppFont.title1())
+                            .foregroundStyle(.white)
+                        
+                        Text("\(viewModel.selectedStudyCount) Words")
+                            .appFont(AppFont.minicaps())
+                            .foregroundStyle(.white.opacity(0.8))
+                            .padding(.top, 4)
+                    }
                     
-                    Text("Continue Learning")
-                        .appFont(AppFont.title1())
+                    Spacer()
+                    
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 50))
                         .foregroundStyle(.white)
-                    
-                    Text("20 Words • 5 Min")
-                        .appFont(AppFont.minicaps())
-                        .foregroundStyle(.white.opacity(0.8))
-                        .padding(.top, 4)
+                        .shadow(radius: 10)
                 }
-                
-                Spacer()
-                
-                Image(systemName: "play.circle.fill")
-                    .font(.system(size: 50))
-                    .foregroundStyle(.white)
-                    .shadow(radius: 10)
+                .padding(30)
+                .background(
+                    ZStack {
+                        Design.primaryGradient
+                        // Decorative Circles
+                        Circle()
+                            .fill(.white.opacity(0.1))
+                            .frame(width: 150)
+                            .offset(x: 100, y: -50)
+                        Circle()
+                            .fill(.white.opacity(0.1))
+                            .frame(width: 100)
+                            .offset(x: 120, y: 60)
+                    }
+                )
+                .clipShape(RoundedRectangle(cornerRadius: Design.radiusLarge))
+                .shadow(color: Design.shadowFloat.color, radius: Design.shadowFloat.radius, y: Design.shadowFloat.y)
             }
-            .padding(30)
-            .background(
-                ZStack {
-                    Design.primaryGradient
-                    // Decorative Circles
-                    Circle()
-                        .fill(.white.opacity(0.1))
-                        .frame(width: 150)
-                        .offset(x: 100, y: -50)
-                    Circle()
-                        .fill(.white.opacity(0.1))
-                        .frame(width: 100)
-                        .offset(x: 120, y: 60)
+            .scaleOnPress()
+            
+            // Study Count Picker
+            HStack(spacing: 12) {
+                Text("학습 개수:")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                
+                ForEach(HomeViewModel.studyCountOptions, id: \.self) { count in
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            viewModel.selectedStudyCount = count
+                        }
+                    } label: {
+                        Text("\(count)")
+                            .font(.subheadline.bold())
+                            .foregroundColor(viewModel.selectedStudyCount == count ? .white : .primary)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(viewModel.selectedStudyCount == count ? Color.primary : Color.gray.opacity(0.15))
+                            )
+                    }
+                    .buttonStyle(.plain)
                 }
-            )
-            .clipShape(RoundedRectangle(cornerRadius: Design.radiusLarge))
-            .shadow(color: Design.shadowFloat.color, radius: Design.shadowFloat.radius, y: Design.shadowFloat.y)
+            }
+            .padding(.horizontal)
         }
-        .scaleOnPress()
     }
     
     // MARK: - Structure Drill Card (Dual-Column Quiz)

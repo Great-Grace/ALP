@@ -6,6 +6,7 @@ import SwiftData
 
 struct UnifiedStudySessionView: View {
     let quizState: QuizState
+    var selectedChapterIds: Set<UUID> = []
     
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -38,7 +39,7 @@ struct UnifiedStudySessionView: View {
         }
         .onAppear {
             viewModel.setup(context: modelContext)
-            viewModel.startUnifiedSession(quizState: quizState)
+            viewModel.startUnifiedSession(quizState: quizState, selectedChapterIds: selectedChapterIds)
         }
         .alert("학습을 중단하시겠습니까?", isPresented: $showExitConfirm) {
             Button("계속하기", role: .cancel) {}
@@ -273,15 +274,15 @@ struct UnifiedStudySessionView: View {
     }
 }
 
-// MARK: - Cloze Quiz Card (Simplified)
+// MARK: - Cloze Quiz Card (Auto-Validation - Legacy Logic)
 struct ClozeQuizCard: View {
     let word: Word
     let onComplete: (ReviewOutcome) -> Void
     
-    @State private var userInput: String = ""
-    @State private var isSubmitted: Bool = false
+    @State private var userInput: String = ""  // Empty start
     @State private var isCorrect: Bool = false
     @State private var hintLevel: Int = 0
+    @State private var hasCompleted: Bool = false  // Prevent double trigger
     @FocusState private var isFocused: Bool
     
     var body: some View {
@@ -296,21 +297,39 @@ struct ClozeQuizCard: View {
                 .multilineTextAlignment(.center)
             
             // Sentence with Blank
-            Text(word.exampleSentence.replacingOccurrences(of: word.arabic, with: "______"))
-                .font(.system(size: 24, weight: .medium, design: .serif))
+            Text(sentenceWithBlank)
+                .font(.custom("Amiri-Regular", size: 24))
                 .multilineTextAlignment(.center)
                 .environment(\.layoutDirection, .rightToLeft)
                 .padding(.horizontal)
             
-            // Input Field
+            // Character Counter
             HStack {
-                TextField("اكتب هنا", text: $userInput)
-                    .font(.system(size: 28, weight: .medium, design: .serif))
+                Spacer()
+                Text("\(normalizedInput.count) / \(word.arabicClean.count)")
+                    .font(.caption)
+                    .foregroundColor(isLengthMatch ? .green : .secondary)
+            }
+            .padding(.horizontal, 32)
+            
+            // Input Field (Auto-validation on change)
+            HStack {
+                TextField("", text: $userInput)
+                    .font(.custom("Amiri-Regular", size: 28))
                     .multilineTextAlignment(.center)
                     .environment(\.layoutDirection, .rightToLeft)
                     .focused($isFocused)
-                    .onSubmit { submitAnswer() }
-                    .disabled(isSubmitted)
+                    .onChange(of: userInput) { _, newValue in
+                        // Filter Arabic only
+                        let filtered = newValue.arabicOnly
+                        if filtered != newValue {
+                            userInput = filtered
+                            return
+                        }
+                        // Auto-validate
+                        checkAnswer()
+                    }
+                    .disabled(isCorrect)
             }
             .padding()
             .background(
@@ -324,53 +343,51 @@ struct ClozeQuizCard: View {
             .padding(.horizontal, 24)
             
             // Hint Button
-            if !isSubmitted {
+            if !isCorrect {
                 Button(action: requestHint) {
-                    Text(hintButtonText)
-                        .font(.subheadline)
-                        .foregroundColor(.blue)
+                    HStack(spacing: 4) {
+                        Image(systemName: hintLevel == 0 ? "lightbulb" : "eye")
+                        Text(hintButtonText)
+                    }
+                    .font(.subheadline)
+                    .foregroundColor(.blue)
                 }
             }
             
             Spacer()
             
-            // Submit Button
-            if !isSubmitted {
-                Button(action: submitAnswer) {
-                    Text("확인")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(userInput.isEmpty ? Color.gray : Color.blue)
-                        .cornerRadius(14)
-                }
-                .disabled(userInput.isEmpty)
-                .padding(.horizontal, 24)
-            } else {
-                // Show correct answer
+            // Success Feedback
+            if isCorrect {
                 VStack(spacing: 8) {
-                    Text(isCorrect ? "정답! 🎉" : "오답")
+                    Text("정답! 🎉")
                         .font(.headline)
-                        .foregroundColor(isCorrect ? .green : .red)
-                    
-                    if !isCorrect {
-                        Text("정답: \(word.arabic)")
-                            .font(.title3)
-                            .fontWeight(.medium)
-                    }
+                        .foregroundColor(.green)
+                    Text(word.arabic)
+                        .font(.custom("Amiri-Bold", size: 28))
+                        .foregroundColor(.primary)
                 }
                 .padding()
-                .onAppear {
-                    let outcome: ReviewOutcome = hintLevel == 0 ? .clean : (hintLevel == 1 ? .hint : .reveal)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                        onComplete(outcome)
-                    }
-                }
+                .transition(.scale.combined(with: .opacity))
             }
         }
         .padding(.bottom, 32)
-        .onAppear { isFocused = true }
+        .onAppear { 
+            isFocused = true 
+        }
+    }
+    
+    // MARK: - Computed Properties
+    
+    private var sentenceWithBlank: String {
+        word.exampleSentence.replacingOccurrences(of: word.arabic, with: "______")
+    }
+    
+    private var normalizedInput: String {
+        userInput.filter { !$0.isWhitespace }
+    }
+    
+    private var isLengthMatch: Bool {
+        normalizedInput.count == word.arabicClean.count
     }
     
     private var hintButtonText: String {
@@ -382,18 +399,17 @@ struct ClozeQuizCard: View {
     }
     
     private var inputBackground: Color {
-        if isSubmitted {
-            return isCorrect ? Color.green.opacity(0.1) : Color.red.opacity(0.1)
-        }
+        if isCorrect { return Color.green.opacity(0.15) }
         return Color.gray.opacity(0.1)
     }
     
     private var inputBorderColor: Color {
-        if isSubmitted {
-            return isCorrect ? .green : .red
-        }
+        if isCorrect { return .green }
+        if isLengthMatch && !isCorrect { return .orange }
         return .gray.opacity(0.3)
     }
+    
+    // MARK: - Actions
     
     private func requestHint() {
         hintLevel += 1
@@ -403,18 +419,33 @@ struct ClozeQuizCard: View {
                 userInput = String(first)
             }
         } else if hintLevel >= 2 {
-            // Full answer
+            // Full answer reveal
             userInput = word.arabicClean
         }
     }
     
-    private func submitAnswer() {
-        let normalized = userInput.filter { !$0.isWhitespace }
-        let correct = normalized == word.arabicClean
+    private func checkAnswer() {
+        guard !hasCompleted else { return }
         
-        withAnimation {
-            isSubmitted = true
-            isCorrect = correct
+        let correct = normalizedInput == word.arabicClean
+        
+        if correct {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                isCorrect = true
+            }
+            
+            // Haptic feedback
+            #if os(iOS)
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
+            #endif
+            
+            // Complete with appropriate outcome
+            hasCompleted = true
+            let outcome: ReviewOutcome = hintLevel == 0 ? .clean : (hintLevel == 1 ? .hint : .reveal)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                onComplete(outcome)
+            }
         }
     }
 }

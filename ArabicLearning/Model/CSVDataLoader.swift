@@ -165,7 +165,7 @@ struct CSVDataLoader {
         return try importCSVAsBook(csvString, bookName: "가져온 단어", context: context)
     }
     
-    /// 번들 샘플 데이터 로드
+    /// 번들 샘플 데이터 로드 (Word only)
     @MainActor
     static func loadSampleData(context: ModelContext) throws -> Int {
         guard let url = Bundle.main.url(forResource: "sample_words", withExtension: "csv"),
@@ -174,6 +174,23 @@ struct CSVDataLoader {
         }
         
         return try importCSV(csvString, context: context)
+    }
+    
+    /// 번들 샘플 데이터 + VerbForm 전체 로드
+    @MainActor
+    static func loadAllSampleData(context: ModelContext) throws -> (words: Int, verbForms: Int) {
+        // 1. Word 로드
+        let wordCount = try loadSampleData(context: context)
+        
+        // 2. VerbForm 로드
+        var verbFormCount = 0
+        do {
+            verbFormCount = try VerbFormLoader.loadFromBundle(context: context, verifiedOnly: true)
+        } catch {
+            print("VerbForm loading failed: \(error)")
+        }
+        
+        return (wordCount, verbFormCount)
     }
 }
 

@@ -152,10 +152,13 @@ class StudySessionViewModel {
     }
     
     // MARK: - Load Session (Spiral Curriculum + SRS)
-    func startSession(mode: QuizMode = .general, selectedChapterIds: Set<UUID>? = nil) {
+    func startSession(mode: QuizMode = .general, selectedChapterIds: Set<UUID>? = nil, limit: Int = 20) {
         guard let context = modelContext else { return }
         self.currentMode = mode
         sessionState = .loading
+        
+        // Store limit for progress tracking
+        self.dailyGoal = limit
         
         // 1. Load all words
         let descriptor = FetchDescriptor<Word>()
@@ -183,27 +186,34 @@ class StudySessionViewModel {
         // 4. Get current quiz state from spiral curriculum
         let currentQuizState = QuizGenerator.shared.getCurrentState(progress: userProgress)
         
-        // 5. Generate session based on state
+        // 5. Generate session based on state (using provided limit)
         var sessionQueue = QuizGenerator.shared.generateSession(
             state: currentQuizState,
             allWords: filteredWords,
-            limit: dailyGoal
+            limit: limit
         )
         
-        // 6. If state-based is empty, fallback to SRS logic
+        // 6. If state-based is empty, fallback to FSRS-based selection
         if sessionQueue.isEmpty {
             let today = Date()
+            
+            // Priority 1: Words due for review
             let reviewWords = filteredWords.filter { word in
                 guard let reviewDate = word.nextReviewDate else { return false }
                 return reviewDate <= today
-            }
+            }.sorted { ($0.nextReviewDate ?? .distantFuture) < ($1.nextReviewDate ?? .distantFuture) }
+            
+            // Priority 2: New words
             let newWords = filteredWords.filter { $0.status == .new }
+            
+            // Priority 3: Learning words
             let learningWords = filteredWords.filter { $0.status == .learning && $0.nextReviewDate == nil }
             
-            let reviewCount = min(reviewWords.count, dailyGoal / 2)
-            let remainingSlots = dailyGoal - reviewCount
+            // 60% review, 40% new/learning
+            let reviewCount = min(reviewWords.count, (limit * 6) / 10)
+            let remainingSlots = limit - reviewCount
             
-            sessionQueue.append(contentsOf: reviewWords.shuffled().prefix(reviewCount))
+            sessionQueue.append(contentsOf: reviewWords.prefix(reviewCount))
             sessionQueue.append(contentsOf: (newWords + learningWords).shuffled().prefix(remainingSlots))
         }
         
@@ -381,15 +391,17 @@ class StudySessionViewModel {
     }
     
     var hintText: String? {
-        guard currentWord != nil else { return nil }
+        guard let word = currentWord else { return nil }
         
         switch hintLevel {
         case .none:
             return nil
         case .firstLetter:
-            return String(canonicalAnswer.prefix(1))
+            // 모음 포함된 첫 글자 (학습에 도움됨)
+            return String(word.arabic.prefix(1))
         case .fullAnswer:
-            return canonicalAnswer
+            // 모음 포함된 전체 정답 (학습용)
+            return word.arabic
         }
     }
     

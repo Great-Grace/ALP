@@ -382,8 +382,8 @@ struct AdminView: View {
     // MARK: - Actions
     private func loadDefaultData() {
         do {
-            let count = try CSVDataLoader.loadSampleData(context: modelContext)
-            alertMessage = "샘플 데이터 로드 완료: \(count)개 단어"
+            let result = try CSVDataLoader.loadAllSampleData(context: modelContext)
+            alertMessage = "샘플 데이터 로드 완료: \(result.words)개 단어, \(result.verbForms)개 동사형"
             showAlert = true
         } catch {
             alertMessage = "데이터 로드 실패: \(error.localizedDescription)"

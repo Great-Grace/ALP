@@ -9,6 +9,10 @@ struct ResultView: View {
     let wrongWords: [Word]
     let accuracy: Double
     let onDismiss: () -> Void
+    var onContinue: ((Int) -> Void)? = nil  // 추가 학습 콜백
+    
+    @State private var selectedAdditionalCount: Int = 10
+    private let additionalOptions = [5, 10, 15, 20]
     
     var totalCount: Int {
         correctCount + wrongCount
@@ -46,14 +50,56 @@ struct ResultView: View {
                 
                 Spacer()
                 
+                // 추가 학습 섹션
+                if onContinue != nil {
+                    additionalStudySection
+                }
+                
                 // 확인 버튼
-                Button("확인") { onDismiss() }
-                    .buttonStyle(PrimaryButtonStyle())
+                Button("홈으로 돌아가기") { onDismiss() }
+                    .buttonStyle(SoftButtonStyle())
                     .padding(.horizontal, Design.spacingXL)
                     .padding(.bottom, Design.spacingXL)
             }
             .padding(.horizontal, Design.spacingL)
         }
+    }
+    
+    // MARK: - Additional Study Section
+    private var additionalStudySection: some View {
+        VStack(spacing: 12) {
+            Text("추가 학습")
+                .font(.headline)
+                .foregroundColor(.primary)
+            
+            HStack(spacing: 8) {
+                ForEach(additionalOptions, id: \.self) { count in
+                    Button {
+                        selectedAdditionalCount = count
+                    } label: {
+                        Text("\(count)")
+                            .font(.subheadline.bold())
+                            .foregroundColor(selectedAdditionalCount == count ? .white : .primary)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(selectedAdditionalCount == count ? Color.primary : Color.gray.opacity(0.2))
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            
+            Button("추가 학습 시작") {
+                onContinue?(selectedAdditionalCount)
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            .padding(.horizontal, Design.spacingXL)
+        }
+        .padding()
+        .background(Color.gray.opacity(0.05))
+        .cornerRadius(Design.radiusLarge)
     }
     
     // MARK: - Result Icon

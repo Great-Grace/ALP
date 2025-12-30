@@ -17,6 +17,10 @@ class HomeViewModel {
     var showChapterFilter: Bool = false
     var selectedQuizMode: QuizMode = .general
     
+    // Study Count Selection
+    var selectedStudyCount: Int = 20
+    static let studyCountOptions = [10, 20, 30, 50]
+    
     // Chapter Filtering
     var availableChapters: [Chapter] = []
     var selectedChapterIds: Set<UUID> = []

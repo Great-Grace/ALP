@@ -143,26 +143,36 @@ final class QuizGenerator {
     func generateUnifiedSession(
         state: QuizState,
         context: ModelContext,
+        selectedChapterIds: Set<UUID> = [],
         limit: Int = 30
     ) -> [QuizItemWrapper] {
         switch state {
         case .novice:
-            return generateNoviceSession(context: context, limit: limit)
+            return generateNoviceSession(context: context, selectedChapterIds: selectedChapterIds, limit: limit)
         case .bridge:
             return generateBridgeSession(context: context, limit: limit)
         case .intermediate:
-            return generateIntermediateSession(context: context, limit: limit)
+            return generateIntermediateSession(context: context, selectedChapterIds: selectedChapterIds, limit: limit)
         }
     }
     
     // MARK: - State A: Novice (Word-based Cloze)
     @MainActor
-    private func generateNoviceSession(context: ModelContext, limit: Int) -> [QuizItemWrapper] {
+    private func generateNoviceSession(context: ModelContext, selectedChapterIds: Set<UUID> = [], limit: Int) -> [QuizItemWrapper] {
         let descriptor = FetchDescriptor<Word>()
         guard let words = try? context.fetch(descriptor) else { return [] }
         
+        // Filter by chapter if selected
+        var baseFiltered = words
+        if !selectedChapterIds.isEmpty {
+            baseFiltered = words.filter { word in
+                guard let chapterId = word.chapter?.id else { return false }
+                return selectedChapterIds.contains(chapterId)
+            }
+        }
+        
         // Filter: complexity = 1, Sound type
-        let filtered = words.filter { word in
+        let filtered = baseFiltered.filter { word in
             word.complexityLevel == 1 &&
             (word.morphologyType == .sound || word.morphologyType == nil)
         }
@@ -232,7 +242,7 @@ final class QuizGenerator {
     
     // MARK: - State C: Intermediate (Mixed)
     @MainActor
-    private func generateIntermediateSession(context: ModelContext, limit: Int) -> [QuizItemWrapper] {
+    private func generateIntermediateSession(context: ModelContext, selectedChapterIds: Set<UUID> = [], limit: Int) -> [QuizItemWrapper] {
         var items: [QuizItemWrapper] = []
         
         // 50% Word, 50% VerbForm
@@ -242,7 +252,14 @@ final class QuizGenerator {
         // Word items (complexity 2+)
         let wordDescriptor = FetchDescriptor<Word>()
         if let words = try? context.fetch(wordDescriptor) {
-            let filtered = words.filter { $0.complexityLevel >= 2 || ($0.verbForm ?? 1) >= 2 }
+            var baseFiltered = words
+            if !selectedChapterIds.isEmpty {
+                baseFiltered = words.filter { word in
+                    guard let chapterId = word.chapter?.id else { return false }
+                    return selectedChapterIds.contains(chapterId)
+                }
+            }
+            let filtered = baseFiltered.filter { $0.complexityLevel >= 2 || ($0.verbForm ?? 1) >= 2 }
             items.append(contentsOf: filtered.shuffled().prefix(wordLimit).map { .cloze($0) })
         }
         

@@ -98,14 +98,15 @@ class UnifiedStudyViewModel {
     
     // MARK: - Start Session
     @MainActor
-    func startUnifiedSession(quizState: QuizState) {
+    func startUnifiedSession(quizState: QuizState, selectedChapterIds: Set<UUID> = []) {
         guard let context = modelContext else { return }
         sessionState = .loading
         
-        // Generate unified session
+        // Generate unified session with chapter filter
         queue = QuizGenerator.shared.generateUnifiedSession(
             state: quizState,
             context: context,
+            selectedChapterIds: selectedChapterIds,
             limit: 30
         )
         
