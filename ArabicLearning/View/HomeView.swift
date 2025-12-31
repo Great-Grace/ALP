@@ -70,25 +70,7 @@ struct HomeView: View {
                     viewModel.refreshData()
                 }
             }
-            #if os(macOS)
-            .popover(isPresented: $viewModel.showChapterFilter) {
-                ChapterFilterSheet(
-                    availableChapters: $viewModel.availableChapters,
-                    selectedChapterIds: $viewModel.selectedChapterIds,
-                    onToggleAll: viewModel.toggleSelectAll,
-                    isAllSelected: viewModel.isAllSelected
-                )
-            }
-            #else
-            .sheet(isPresented: $viewModel.showChapterFilter) {
-                ChapterFilterSheet(
-                    availableChapters: $viewModel.availableChapters,
-                    selectedChapterIds: $viewModel.selectedChapterIds,
-                    onToggleAll: viewModel.toggleSelectAll,
-                    isAllSelected: viewModel.isAllSelected
-                )
-            }
-            #endif
+            // ChapterFilterSheet removed - no longer used in new architecture
             .navigationDestination(isPresented: $viewModel.showReader) {
                 if let article = viewModel.selectedArticle {
                     InteractiveReadingView(article: article)

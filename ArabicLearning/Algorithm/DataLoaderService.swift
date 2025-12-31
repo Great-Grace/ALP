@@ -79,11 +79,17 @@ actor DataLoaderService {
         StudyLevel.seedLevels(context: context)
         await updateState(.loading(progress: 0.05))
         
-        // 3. Load CSV
-        guard let url = Bundle.main.url(forResource: "verb_forms", withExtension: "csv"),
+        // 3. Load CSV (curriculum_data.csv with proper levels)
+        guard let url = Bundle.main.url(forResource: "curriculum_data", withExtension: "csv"),
               let csvString = try? String(contentsOf: url, encoding: .utf8) else {
-            await updateState(.failed(error: "CSV 파일을 찾을 수 없습니다"))
-            return 0
+            // Fallback to verb_forms.csv if curriculum_data doesn't exist
+            guard let fallbackUrl = Bundle.main.url(forResource: "verb_forms", withExtension: "csv"),
+                  let fallbackCsv = try? String(contentsOf: fallbackUrl, encoding: .utf8) else {
+                await updateState(.failed(error: "CSV 파일을 찾을 수 없습니다"))
+                return 0
+            }
+            await updateState(.loading(progress: 0.1))
+            return await batchImport(csvString: fallbackCsv, context: context)
         }
         
         await updateState(.loading(progress: 0.1))

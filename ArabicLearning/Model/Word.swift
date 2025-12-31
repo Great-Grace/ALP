@@ -117,6 +117,14 @@ final class Word {
         return currentRetrievability < 0.9
     }
     
+    // MARK: - User-Added Tracking
+    
+    /// True if user added this word from reading (tap-to-add)
+    var isUserAdded: Bool = false
+    
+    /// Level ID where user added this word (for tracking)
+    var addedFromLevelID: Int?
+    
     var createdAt: Date = Date()
     
     // Relationship - 소속 챕터
