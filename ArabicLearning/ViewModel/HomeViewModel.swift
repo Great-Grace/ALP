@@ -1,3 +1,6 @@
+// HomeViewModel.swift
+// Level-Based ViewModel (Legacy Chapter removed)
+
 import Foundation
 import SwiftData
 import SwiftUI
@@ -6,7 +9,7 @@ import SwiftUI
 class HomeViewModel {
     // Stats
     var totalWords: Int = 0
-    var totalChapters: Int = 0
+    var totalLevels: Int = 0
     var todayCorrect: Int = 0
     var todayTotal: Int = 0
     var streakDays: Int = 0
@@ -14,28 +17,27 @@ class HomeViewModel {
     
     // UI State
     var showStudySession: Bool = false
-    var showChapterFilter: Bool = false
     var selectedQuizMode: QuizMode = .general
     
     // Study Count Selection
     var selectedStudyCount: Int = 20
     static let studyCountOptions = [10, 20, 30, 50]
     
-    // Chapter Filtering
-    var availableChapters: [Chapter] = []
-    var selectedChapterIds: Set<UUID> = []
+    // Level Filtering (replaced Chapter)
+    var availableLevels: [StudyLevel] = []
+    var selectedLevelIds: Set<Int> = []
     
     // Reader / Library
     var articles: [Article] = []
     var showReader: Bool = false
     var selectedArticle: Article?
     
-    var selectedChaptersCount: Int {
-        selectedChapterIds.isEmpty ? availableChapters.count : selectedChapterIds.count
+    var selectedLevelsCount: Int {
+        selectedLevelIds.isEmpty ? availableLevels.count : selectedLevelIds.count
     }
     
     var isAllSelected: Bool {
-        selectedChapterIds.isEmpty || selectedChapterIds.count == availableChapters.count
+        selectedLevelIds.isEmpty || selectedLevelIds.count == availableLevels.count
     }
     
     // Dependencies
@@ -44,132 +46,62 @@ class HomeViewModel {
     func setup(context: ModelContext) {
         self.modelContext = context
         refreshData()
-        loadChapters()
+        loadLevels()
         loadArticles()
     }
     
     func refreshData() {
         guard let context = modelContext else { return }
         
-        // 1. Fetch Totals
-        let chapterDescriptor = FetchDescriptor<Chapter>()
+        // Words count
         let wordDescriptor = FetchDescriptor<Word>()
-        
-        totalChapters = (try? context.fetchCount(chapterDescriptor)) ?? 0
         totalWords = (try? context.fetchCount(wordDescriptor)) ?? 0
         
-        // 2. Fetch Today's Stats
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: Date())
+        // Levels count
+        let levelDescriptor = FetchDescriptor<StudyLevel>()
+        totalLevels = (try? context.fetchCount(levelDescriptor)) ?? 0
         
-        let historyDescriptor = FetchDescriptor<QuizHistory>(
-            predicate: #Predicate<QuizHistory> { history in
-                history.answeredAt >= startOfDay
-            }
-        )
-        
-        if let todayHistory = try? context.fetch(historyDescriptor) {
+        // Today's stats (fetch all and filter in memory to avoid predicate issues)
+        let historyDescriptor = FetchDescriptor<QuizHistory>()
+        if let allHistory = try? context.fetch(historyDescriptor) {
+            let today = Calendar.current.startOfDay(for: Date())
+            let todayHistory = allHistory.filter { $0.answeredAt >= today }
             todayTotal = todayHistory.count
             todayCorrect = todayHistory.filter { $0.isCorrect }.count
-            
-            if todayTotal > 0 {
-                let formatter = DateFormatter()
-                formatter.locale = Locale(identifier: "ko_KR")
-                formatter.dateFormat = "E"
-                let todayDay = formatter.string(from: Date())
-                completedDays.insert(todayDay)
-            }
         }
-        
-        // 3. Simple Streak Calculation
-        streakDays = todayTotal > 0 ? 1 : 0
     }
     
-    // MARK: - Chapter Filtering
-    private func loadChapters() {
+    private func loadLevels() {
         guard let context = modelContext else { return }
         
-        let descriptor = FetchDescriptor<Chapter>(sortBy: [SortDescriptor(\.orderIndex)])
-        availableChapters = (try? context.fetch(descriptor)) ?? []
+        let descriptor = FetchDescriptor<StudyLevel>()
+        availableLevels = ((try? context.fetch(descriptor)) ?? []).sorted { $0.levelID < $1.levelID }
+    }
+    
+    private func loadArticles() {
+        guard let context = modelContext else { return }
         
-        // Default: all selected
-        selectedChapterIds = Set(availableChapters.map { $0.id })
+        let descriptor = FetchDescriptor<Article>()
+        articles = (try? context.fetch(descriptor)) ?? []
     }
     
-    func toggleChapter(_ id: UUID) {
-        if selectedChapterIds.contains(id) {
-            selectedChapterIds.remove(id)
-        } else {
-            selectedChapterIds.insert(id)
-        }
-    }
-    
-    func selectAllChapters() {
-        selectedChapterIds = Set(availableChapters.map { $0.id })
-    }
-    
-    func deselectAllChapters() {
-        selectedChapterIds.removeAll()
+    func selectArticle(_ article: Article) {
+        selectedArticle = article
+        showReader = true
     }
     
     func toggleSelectAll() {
         if isAllSelected {
-            deselectAllChapters()
+            selectedLevelIds = []
         } else {
-            selectAllChapters()
+            selectedLevelIds = Set(availableLevels.map { $0.levelID })
         }
     }
     
-    // Greeting Logic
-    var greetingText: String {
-        let hour = Calendar.current.component(.hour, from: Date())
-        if hour < 12 { return "Good Morning! ☀️" }
-        if hour < 18 { return "Good Afternoon! 🌤️" }
-        return "Good Evening! 🌙"
-    }
+    // MARK: - Legacy Compatibility
     
-    var accuracyText: String {
-        guard todayTotal > 0 else { return "-" }
-        let accuracy = Double(todayCorrect) / Double(todayTotal) * 100
-        return "\(Int(accuracy))%"
-    }
-    
-    // MARK: - Library & Articles
-    func loadArticles() {
-        guard let context = modelContext else { return }
-        let descriptor = FetchDescriptor<Article>(sortBy: [SortDescriptor(\.addedAt, order: .reverse)])
-        articles = (try? context.fetch(descriptor)) ?? []
-        
-        // Auto-create sample if empty
-        if articles.isEmpty {
-            createSampleArticle(context: context)
-        }
-    }
-    
-    private func createSampleArticle(context: ModelContext) {
-        // Create dummy tokens for sample
-        let tokens = [
-            ArticleToken(text: "أذهب", cleanText: "أذهب", rootId: nil, isTargetWord: true, punctuation: nil),
-            ArticleToken(text: "إلى", cleanText: "إلى", rootId: nil, isTargetWord: false, punctuation: nil),
-            ArticleToken(text: "المدرسة", cleanText: "المدرسة", rootId: nil, isTargetWord: true, punctuation: "."),
-            ArticleToken(text: "كل", cleanText: "كل", rootId: nil, isTargetWord: false, punctuation: nil),
-            ArticleToken(text: "يوم", cleanText: "يوم", rootId: nil, isTargetWord: true, punctuation: ".")
-        ]
-        
-        let sample = Article(
-            title: "School Life",
-            tokens: tokens,
-            difficultyLevel: 1,
-            source: "System Generated"
-        )
-        context.insert(sample)
-        try? context.save()
-        articles = [sample]
-    }
-    
-    func openArticle(_ article: Article) {
-        self.selectedArticle = article
-        self.showReader = true
-    }
+    // These keep old code working until fully migrated
+    var availableChapters: [StudyLevel] { availableLevels }
+    var selectedChapterIds: Set<UUID> = []
+    var showChapterFilter: Bool = false
 }
-

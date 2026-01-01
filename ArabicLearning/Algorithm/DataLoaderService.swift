@@ -79,11 +79,11 @@ actor DataLoaderService {
         StudyLevel.seedLevels(context: context)
         await updateState(.loading(progress: 0.05))
         
-        // 3. Load CSV (curriculum_data.csv with proper levels)
-        guard let url = Bundle.main.url(forResource: "curriculum_data", withExtension: "csv"),
+        // 3. Load CSV (final_curriculum.csv - 8-level structure)
+        guard let url = Bundle.main.url(forResource: "final_curriculum", withExtension: "csv"),
               let csvString = try? String(contentsOf: url, encoding: .utf8) else {
-            // Fallback to verb_forms.csv if curriculum_data doesn't exist
-            guard let fallbackUrl = Bundle.main.url(forResource: "verb_forms", withExtension: "csv"),
+            // Fallback to curriculum_data.csv if final_curriculum doesn't exist
+            guard let fallbackUrl = Bundle.main.url(forResource: "curriculum_data", withExtension: "csv"),
                   let fallbackCsv = try? String(contentsOf: fallbackUrl, encoding: .utf8) else {
                 await updateState(.failed(error: "CSV 파일을 찾을 수 없습니다"))
                 return 0
@@ -144,21 +144,41 @@ actor DataLoaderService {
             
             let columns = parseCSVLine(line)
             
-            // Parse required fields
-            guard let rootIdx = columnMap["root"], rootIdx < columns.count,
-                  let formIdx = columnMap["verb_form"], formIdx < columns.count,
-                  let wordIdx = columnMap["arabic_word"], wordIdx < columns.count else {
-                continue
-            }
+            // Parse required fields (support both old and new column names)
+            // New schema: arabic_text, korean_meaning, level, form
+            // Old schema: arabic_word, meaning_korean, verb_form
+            let wordIdx = columnMap["arabic_text"] ?? columnMap["arabic_word"]
+            let meaningIdx = columnMap["korean_meaning"] ?? columnMap["meaning_korean"]
+            let levelIdx = columnMap["level"]
+            let formIdx = columnMap["form"] ?? columnMap["verb_form"]
             
-            let root = columns[rootIdx].trimmingCharacters(in: .whitespaces)
-            let formNumber = Int(columns[formIdx].trimmingCharacters(in: .whitespaces)) ?? 1
-            let arabicWord = columns[wordIdx].trimmingCharacters(in: .whitespaces)
+            guard let wIdx = wordIdx, wIdx < columns.count else { continue }
             
+            let arabicWord = columns[wIdx].trimmingCharacters(in: .whitespaces)
             guard !arabicWord.isEmpty else { continue }
             
-            // Auto-leveling
-            let levelID = calculateAutoLevel(for: importedCount)
+            // Get meaning
+            let meaning = meaningIdx != nil && meaningIdx! < columns.count
+                ? columns[meaningIdx!].trimmingCharacters(in: .whitespaces)
+                : ""
+            
+            // Get level from CSV (new) or auto-calculate (fallback)
+            let levelID: Int
+            if let lIdx = levelIdx, lIdx < columns.count,
+               let parsedLevel = Int(columns[lIdx].trimmingCharacters(in: .whitespaces)) {
+                levelID = parsedLevel
+            } else {
+                levelID = calculateAutoLevel(for: importedCount)
+            }
+            
+            // Get verb form
+            let formNumber: Int
+            if let fIdx = formIdx, fIdx < columns.count,
+               let parsedForm = Int(columns[fIdx].trimmingCharacters(in: .whitespaces)) {
+                formNumber = parsedForm
+            } else {
+                formNumber = 0
+            }
             
             // Get or create level
             let level: StudyLevel
@@ -175,18 +195,25 @@ actor DataLoaderService {
                 levelMap[levelID] = level
             }
             
-            // Parse optional fields
+            // Parse optional fields (support both schemas)
+            let root = safeColumn(columns, columnMap["root"])
             let pattern = safeColumn(columns, columnMap["pattern"])
-            let meaningPrimary = safeColumn(columns, columnMap["meaning_primary"])
-            let meaningKorean = safeColumn(columns, columnMap["meaning_korean"])
             let exampleSentence = safeColumn(columns, columnMap["example_sentence"])
             let sentenceMeaning = safeColumn(columns, columnMap["sentence_meaning"])
-            let nuanceKorean = safeColumn(columns, columnMap["nuance_kr"])
+            let nuanceKorean = safeColumn(columns, columnMap["nuance_korean"])
+            
+            // Spiral Curriculum fields (L2/L3/L8)
+            let phraseComponents = safeColumn(columns, columnMap["phrase_components"])
+            let singularForm = safeColumn(columns, columnMap["singular_form"])
+            let sentenceAnalysis = safeColumn(columns, columnMap["sentence_analysis"])
+            let gender = safeColumn(columns, columnMap["gender"])
+            let cefr = safeColumn(columns, columnMap["cefr"])
+            let dataType = safeColumn(columns, columnMap["type"])
             
             // Create Word (NO SAVE YET - batch at end)
             let word = Word(
                 arabic: arabicWord,
-                korean: meaningPrimary ?? meaningKorean ?? "",
+                korean: meaning,
                 exampleSentence: exampleSentence ?? "",
                 sentenceKorean: sentenceMeaning ?? ""
             )
@@ -196,6 +223,14 @@ actor DataLoaderService {
             word.pattern = pattern
             word.verbForm = formNumber
             word.nuanceKorean = nuanceKorean
+            
+            // Spiral Curriculum fields
+            word.phraseComponents = phraseComponents
+            word.singularForm = singularForm
+            word.sentenceAnalysis = sentenceAnalysis
+            word.gender = gender
+            word.cefr = cefr
+            word.dataType = dataType
             
             context.insert(word)
             importedCount += 1

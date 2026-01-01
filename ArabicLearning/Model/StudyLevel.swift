@@ -4,6 +4,48 @@
 import Foundation
 import SwiftData
 
+// MARK: - Level Type Enum (No Magic Numbers!)
+
+/// Determines the learning mode and quiz type for each level
+enum LevelType: String, Codable, CaseIterable {
+    case vocabulary  // 어휘 중심: 20/10 Mixed Quiz
+    case grammar     // 문법/구조 중심: Structure Analysis Quiz
+    
+    var displayName: String {
+        switch self {
+        case .vocabulary: return "어휘 학습"
+        case .grammar: return "구조 학습"
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .vocabulary: return "textformat.abc"
+        case .grammar: return "rectangle.3.group"
+        }
+    }
+    
+    var actionTitle: String {
+        switch self {
+        case .vocabulary: return "오늘의 어휘 학습"
+        case .grammar: return "문장 구조 학습"
+        }
+    }
+    
+    var actionSubtitle: String {
+        switch self {
+        case .vocabulary: return "복습 20개 + 신규 10개"
+        case .grammar: return "구조 분석 및 패턴 학습"
+        }
+    }
+    
+    var color: String {
+        switch self {
+        case .vocabulary: return "orange"
+        case .grammar: return "purple"
+        }
+    }
+}
 @Model
 final class StudyLevel {
     
@@ -30,6 +72,14 @@ final class StudyLevel {
     /// Whether the level test has been passed
     var isPassed: Bool = false
     
+    /// Level type (vocabulary or grammar) - stored as raw string for SwiftData
+    var levelTypeRaw: String = LevelType.vocabulary.rawValue
+    
+    /// Computed property for type-safe access
+    var levelType: LevelType {
+        get { LevelType(rawValue: levelTypeRaw) ?? .vocabulary }
+        set { levelTypeRaw = newValue.rawValue }
+    }
     // MARK: - Relationships
     
     @Relationship(deleteRule: .nullify, inverse: \Word.level)
@@ -67,11 +117,12 @@ final class StudyLevel {
     
     // MARK: - Init
     
-    init(levelID: Int, title: String = "", description: String = "", isLocked: Bool = true) {
+    init(levelID: Int, title: String = "", description: String = "", isLocked: Bool = true, type: LevelType = .vocabulary) {
         self.levelID = levelID
         self.title = title
         self.levelDescription = description
         self.isLocked = isLocked
+        self.levelTypeRaw = type.rawValue
     }
     
     // MARK: - Static: Seed Levels
@@ -85,13 +136,19 @@ final class StudyLevel {
             return
         }
         
-        // Create default levels
-        let defaultLevels: [(id: Int, title: String, desc: String)] = [
-            (1, "기초 동사 I", "1형 기본 동사 50개"),
-            (2, "기초 동사 II", "2-3형 파생 동사"),
-            (3, "중급 동사 I", "4-5형 파생 동사"),
-            (4, "중급 동사 II", "6-7형 파생 동사"),
-            (5, "고급 동사", "8-10형 파생 동사"),
+        // 8-Level Curriculum (2026 Re-Architecture)
+        // Levels 1, 4-7: vocabulary
+        // Levels 2, 3: grammar/structure
+        // Level 8: sentence
+        let defaultLevels: [(id: Int, title: String, desc: String, type: LevelType)] = [
+            (1, "기초 어휘", "기초 단어 및 표현", .vocabulary),
+            (2, "명사-형용사 구문", "성수일치 학습", .grammar),
+            (3, "단수-복수", "불규칙 복수형 학습", .grammar),
+            (4, "동사 I", "Form 1-2 기본 동사", .vocabulary),
+            (5, "동사 II", "Form 3-4 파생 동사", .vocabulary),
+            (6, "동사 III", "Form 5-7 파생 동사", .vocabulary),
+            (7, "동사 IV", "Form 8-10 파생 동사", .vocabulary),
+            (8, "문장 분석", "복합 문장 구조 학습", .grammar),
         ]
         
         for (index, info) in defaultLevels.enumerated() {
@@ -99,7 +156,8 @@ final class StudyLevel {
                 levelID: info.id,
                 title: info.title,
                 description: info.desc,
-                isLocked: index > 0 // Level 1 is unlocked
+                isLocked: index > 0, // Level 1 is unlocked
+                type: info.type
             )
             context.insert(level)
         }

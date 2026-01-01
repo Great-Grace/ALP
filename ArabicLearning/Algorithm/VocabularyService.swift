@@ -87,9 +87,7 @@ final class VocabularyService {
             arabic: arabic,
             korean: korean,
             exampleSentence: exampleSentence,
-            sentenceKorean: sentenceKorean,
-            sentenceWithBlank: nil,
-            chapter: nil
+            sentenceKorean: sentenceKorean
         )
         
         // 5. Populate morphology fields from VerbForm if available

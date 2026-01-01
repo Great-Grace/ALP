@@ -1,5 +1,6 @@
 // StrictTypingQuizView.swift
-// Clean MVVM View - Only UI, no business logic
+// Unified Study Interface with Implicit FSRS
+// NO manual Easy/Hard buttons - behavior-based grading
 
 import SwiftUI
 import SwiftData
@@ -29,10 +30,12 @@ struct StrictTypingQuizView: View {
                     }
                 case .completed:
                     resultView
+                case .levelUp:
+                    levelUpView
                 }
             }
             .background(groupedBackground)
-            .navigationTitle("레벨 \(level.levelID) 테스트")
+            .navigationTitle("학습: \(level.displayTitle)")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
@@ -41,7 +44,7 @@ struct StrictTypingQuizView: View {
                     Button("종료") { dismiss() }
                 }
                 
-                if viewModel.quizState != .completed {
+                if viewModel.quizState == .active || viewModel.quizState == .showingFeedback(isCorrect: true) || viewModel.quizState == .showingFeedback(isCorrect: false) {
                     ToolbarItem(placement: .confirmationAction) {
                         Text(viewModel.questionCount)
                             .font(.caption)
@@ -52,18 +55,23 @@ struct StrictTypingQuizView: View {
             .onAppear {
                 viewModel.setup(level: level, context: modelContext)
             }
+            .alert("🎉 레벨 업!", isPresented: $viewModel.showLevelUpAlert) {
+                Button("확인") { dismiss() }
+            } message: {
+                Text("\(viewModel.unlockedLevelName)이 해금되었습니다!")
+            }
         }
     }
     
-    // MARK: - Quiz Content (Pure UI)
+    // MARK: - Quiz Content
     
     private func quizContent(word: Word) -> some View {
-        VStack(spacing: 32) {
+        VStack(spacing: 24) {
             Spacer()
             
-            // Korean Meaning
+            // Korean Meaning (What to translate)
             VStack(spacing: 12) {
-                Text("다음 뜻을 아랍어로 쓰세요")
+                Text("아랍어로 쓰세요")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 
@@ -73,9 +81,13 @@ struct StrictTypingQuizView: View {
                     .multilineTextAlignment(.center)
                 
                 if let root = word.root, !root.isEmpty {
-                    Text("어근: \(root)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    HStack(spacing: 4) {
+                        Image(systemName: "cube")
+                            .font(.caption2)
+                        Text("어근: \(root)")
+                            .font(.caption)
+                    }
+                    .foregroundStyle(.secondary)
                 }
             }
             .padding()
@@ -92,15 +104,50 @@ struct StrictTypingQuizView: View {
                     .environment(\.layoutDirection, .rightToLeft)
                     .disabled(viewModel.quizState != .active)
                 
-                // Feedback
-                if case .showingFeedback(let isCorrect) = viewModel.quizState {
+                // Feedback Message
+                if !viewModel.feedbackMessage.isEmpty {
                     Text(viewModel.feedbackMessage)
-                        .font(.caption)
-                        .foregroundStyle(isCorrect ? .green : .red)
+                        .font(.subheadline)
+                        .foregroundStyle(feedbackColor)
                         .transition(.opacity)
                 }
             }
             .padding(.horizontal)
+            
+            // Help Buttons (Hint / Reveal)
+            if viewModel.quizState == .active {
+                HStack(spacing: 16) {
+                    // Hint Button (shows first letter)
+                    Button(action: { viewModel.requestHint() }) {
+                        HStack {
+                            Image(systemName: "lightbulb")
+                            Text("힌트")
+                        }
+                        .font(.subheadline)
+                        .foregroundStyle(viewModel.usedHint ? .gray : .orange)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color.orange.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+                    .disabled(viewModel.usedHint)
+                    
+                    // Reveal Button (shows answer)
+                    Button(action: { viewModel.revealAnswer() }) {
+                        HStack {
+                            Image(systemName: "eye")
+                            Text("정답 보기")
+                        }
+                        .font(.subheadline)
+                        .foregroundStyle(viewModel.usedReveal ? .gray : .blue)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color.blue.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+                    .disabled(viewModel.usedReveal)
+                }
+            }
             
             Spacer()
             
@@ -115,13 +162,18 @@ struct StrictTypingQuizView: View {
                     .cornerRadius(12)
             }
             .disabled(viewModel.userInput.isEmpty || viewModel.quizState != .active)
-            .accessibilityLabel("답안 확인")
-            .accessibilityHint("입력한 아랍어가 정답인지 확인합니다")
             .padding()
         }
     }
     
-    // MARK: - Result View (Pure UI)
+    private var feedbackColor: Color {
+        if case .showingFeedback(let isCorrect) = viewModel.quizState {
+            return isCorrect ? .green : .red
+        }
+        return viewModel.usedHint || viewModel.usedReveal ? .orange : .secondary
+    }
+    
+    // MARK: - Result View
     
     private var resultView: some View {
         VStack(spacing: 32) {
@@ -136,7 +188,7 @@ struct StrictTypingQuizView: View {
                 Circle()
                     .trim(from: 0, to: viewModel.scorePercentage)
                     .stroke(
-                        viewModel.isPassed ? Color.green : Color.orange,
+                        scoreColor,
                         style: StrokeStyle(lineWidth: 12, lineCap: .round)
                     )
                     .frame(width: 150, height: 150)
@@ -153,51 +205,105 @@ struct StrictTypingQuizView: View {
                 }
             }
             
-            // Result Message
-            VStack(spacing: 8) {
-                if viewModel.isPassed {
-                    Label("통과!", systemImage: "checkmark.seal.fill")
-                        .font(.title)
-                        .foregroundStyle(.green)
-                    
-                    Text("다음 레벨이 해금되었습니다!")
-                        .foregroundStyle(.secondary)
-                } else {
-                    Label("아쉬워요", systemImage: "xmark.circle.fill")
-                        .font(.title)
-                        .foregroundStyle(.orange)
-                    
-                    Text("80% 이상 맞춰야 통과입니다.\n다시 학습하고 도전해보세요!")
-                        .multilineTextAlignment(.center)
-                        .foregroundStyle(.secondary)
+            // Implicit Grade Stats
+            VStack(spacing: 12) {
+                Text("학습 결과")
+                    .font(.headline)
+                
+                HStack(spacing: 20) {
+                    gradeStatView(emoji: "🎯", label: "Easy", count: viewModel.easyCount, color: .green)
+                    gradeStatView(emoji: "✓", label: "Good", count: viewModel.goodCount, color: .blue)
+                    gradeStatView(emoji: "💪", label: "Hard", count: viewModel.hardCount, color: .orange)
+                    gradeStatView(emoji: "🔄", label: "Again", count: viewModel.againCount, color: .red)
                 }
             }
+            .padding()
+            .background(cardBackground)
+            .cornerRadius(12)
             
             Spacer()
             
             // Action Buttons
             VStack(spacing: 12) {
                 Button(action: { dismiss() }) {
-                    Text(viewModel.isPassed ? "완료" : "돌아가기")
+                    Text("완료")
                         .font(.headline)
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(viewModel.isPassed ? Color.green : Color.blue)
+                        .background(Color.blue)
                         .cornerRadius(12)
                 }
                 
-                if !viewModel.isPassed {
-                    Button(action: { viewModel.retry() }) {
-                        Text("다시 도전")
-                            .font(.headline)
-                            .foregroundStyle(.blue)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue.opacity(0.1))
-                            .cornerRadius(12)
-                    }
+                Button(action: { viewModel.retry() }) {
+                    Text("다시 학습")
+                        .font(.headline)
+                        .foregroundStyle(.blue)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue.opacity(0.1))
+                        .cornerRadius(12)
                 }
+            }
+            .padding()
+        }
+    }
+    
+    private func gradeStatView(emoji: String, label: String, count: Int, color: Color) -> some View {
+        VStack(spacing: 4) {
+            Text(emoji)
+                .font(.title2)
+            Text("\(count)")
+                .font(.headline)
+                .foregroundStyle(color)
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+    }
+    
+    private var scoreColor: Color {
+        if viewModel.scorePercentage >= 0.8 {
+            return .green
+        } else if viewModel.scorePercentage >= 0.5 {
+            return .orange
+        } else {
+            return .red
+        }
+    }
+    
+    // MARK: - Level Up View
+    
+    private var levelUpView: some View {
+        VStack(spacing: 24) {
+            Spacer()
+            
+            Image(systemName: "star.circle.fill")
+                .font(.system(size: 80))
+                .foregroundStyle(.yellow)
+            
+            Text("🎉 축하합니다!")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+            
+            Text("\(viewModel.unlockedLevelName)")
+                .font(.title2)
+                .foregroundStyle(.secondary)
+            
+            Text("새로운 레벨이 해금되었습니다!")
+                .font(.headline)
+                .foregroundStyle(.green)
+            
+            Spacer()
+            
+            Button(action: { dismiss() }) {
+                Text("계속하기")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.green)
+                    .cornerRadius(12)
             }
             .padding()
         }

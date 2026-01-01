@@ -1,5 +1,5 @@
 // CurriculumMapView.swift
-// Full-screen level selection and curriculum overview
+// Full-Screen Level Selection - Strategic Map
 
 import SwiftUI
 import SwiftData
@@ -10,77 +10,58 @@ struct CurriculumMapView: View {
     
     @Query(sort: \StudyLevel.levelID) private var levels: [StudyLevel]
     
-    @State private var selectedLevel: StudyLevel?
-    @State private var showingLevelDetail = false
+    var onLevelSelected: ((StudyLevel) -> Void)?
     
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Header Stats
-                    progressHeader
-                    
-                    // Level Cards
-                    LazyVStack(spacing: 16) {
-                        ForEach(levels) { level in
-                            LevelMapCard(level: level) {
-                                selectedLevel = level
-                                showingLevelDetail = true
-                            }
-                        }
-                    }
-                    .padding(.horizontal)
-                }
-                .padding(.vertical)
+        ScrollView {
+            VStack(spacing: 24) {
+                // Progress Overview
+                progressHeader
+                
+                // Level Roadmap
+                levelRoadmap
+                
+                // Tips Section
+                tipsSection
             }
-            .background(groupedBackground)
-            .navigationTitle("커리큘럼")
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.large)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("닫기") { dismiss() }
-                }
-            }
-            .sheet(isPresented: $showingLevelDetail) {
-                if let level = selectedLevel {
-                    NavigationStack {
-                        LevelDetailView(level: level)
-                            .toolbar {
-                                ToolbarItem(placement: .cancellationAction) {
-                                    Button("닫기") { showingLevelDetail = false }
-                                }
-                            }
-                    }
-                }
-            }
+            .padding()
         }
+        .background(groupedBackground)
+        .navigationTitle("커리큘럼")
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.large)
+        #endif
     }
     
     // MARK: - Progress Header
     
     private var progressHeader: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
             // Progress Ring
             ZStack {
                 Circle()
-                    .stroke(Color.gray.opacity(0.2), lineWidth: 12)
-                    .frame(width: 100, height: 100)
+                    .stroke(Color.gray.opacity(0.2), lineWidth: 14)
+                    .frame(width: 120, height: 120)
                 
                 Circle()
                     .trim(from: 0, to: progressPercentage)
                     .stroke(
-                        LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing),
-                        style: StrokeStyle(lineWidth: 12, lineCap: .round)
+                        LinearGradient(
+                            colors: [.blue, .purple],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        ),
+                        style: StrokeStyle(lineWidth: 14, lineCap: .round)
                     )
-                    .frame(width: 100, height: 100)
+                    .frame(width: 120, height: 120)
                     .rotationEffect(.degrees(-90))
+                    .animation(.spring(duration: 0.8), value: progressPercentage)
                 
-                VStack {
+                VStack(spacing: 2) {
                     Text("\(Int(progressPercentage * 100))%")
-                        .font(.title2)
+                        .font(.title)
                         .fontWeight(.bold)
+                    
                     Text("완료")
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -88,27 +69,28 @@ struct CurriculumMapView: View {
             }
             
             // Stats Row
-            HStack(spacing: 32) {
-                VStack {
+            HStack(spacing: 40) {
+                VStack(spacing: 4) {
                     Text("\(passedCount)")
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundStyle(.green)
-                    Text("통과한 레벨")
+                    Text("통과")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
                 
-                VStack {
-                    Text("\(levels.count)")
+                VStack(spacing: 4) {
+                    Text("\(levels.count - passedCount)")
                         .font(.title2)
                         .fontWeight(.bold)
-                    Text("전체 레벨")
+                        .foregroundStyle(.orange)
+                    Text("진행중")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
                 
-                VStack {
+                VStack(spacing: 4) {
                     Text("\(totalWords)")
                         .font(.title2)
                         .fontWeight(.bold)
@@ -119,10 +101,59 @@ struct CurriculumMapView: View {
                 }
             }
         }
-        .padding()
+        .padding(24)
         .background(cardBackground)
-        .cornerRadius(16)
-        .padding(.horizontal)
+        .cornerRadius(20)
+    }
+    
+    // MARK: - Level Roadmap
+    
+    private var levelRoadmap: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("학습 로드맵")
+                .font(.headline)
+            
+            ForEach(levels) { level in
+                LevelRoadmapCard(
+                    level: level,
+                    isSelected: false,
+                    onTap: {
+                        if !level.isLocked {
+                            onLevelSelected?(level)
+                            dismiss()
+                        }
+                    }
+                )
+            }
+        }
+    }
+    
+    // MARK: - Tips Section
+    
+    private var tipsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("학습 팁", systemImage: "lightbulb.fill")
+                .font(.headline)
+                .foregroundStyle(.orange)
+            
+            VStack(alignment: .leading, spacing: 8) {
+                tipRow(icon: "1.circle.fill", text: "레벨 1-3은 어휘 중심 학습")
+                tipRow(icon: "2.circle.fill", text: "레벨 4-5는 문법/구조 학습")
+                tipRow(icon: "3.circle.fill", text: "80% 이상 마스터리로 다음 레벨 해금")
+            }
+            .padding()
+            .background(Color.orange.opacity(0.1))
+            .cornerRadius(12)
+        }
+    }
+    
+    private func tipRow(icon: String, text: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .foregroundStyle(.orange)
+            Text(text)
+                .font(.subheadline)
+        }
     }
     
     // MARK: - Computed
@@ -157,10 +188,11 @@ struct CurriculumMapView: View {
     }
 }
 
-// MARK: - Level Map Card
+// MARK: - Level Roadmap Card
 
-struct LevelMapCard: View {
+struct LevelRoadmapCard: View {
     let level: StudyLevel
+    let isSelected: Bool
     let onTap: () -> Void
     
     private var levelColor: Color {
@@ -174,6 +206,14 @@ struct LevelMapCard: View {
         case 4: return .purple
         case 5: return .red
         default: return .blue
+        }
+    }
+    
+    private var levelType: String {
+        switch level.levelID {
+        case 1...3: return "어휘"
+        case 4...5: return "구조"
+        default: return "어휘"
         }
     }
     
@@ -193,6 +233,7 @@ struct LevelMapCard: View {
                             .foregroundStyle(.white)
                     } else if level.isLocked {
                         Image(systemName: "lock.fill")
+                            .font(.title3)
                             .foregroundStyle(.white.opacity(0.7))
                     } else {
                         Text("\(level.levelID)")
@@ -203,41 +244,54 @@ struct LevelMapCard: View {
                 }
                 
                 // Info
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(level.displayTitle)
-                        .font(.headline)
-                        .foregroundStyle(level.isLocked ? .secondary : .primary)
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text(level.displayTitle)
+                            .font(.headline)
+                            .foregroundStyle(level.isLocked ? .secondary : .primary)
+                        
+                        // Type Badge
+                        Text(levelType)
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(levelColor.opacity(0.15))
+                            .foregroundStyle(levelColor)
+                            .cornerRadius(4)
+                    }
                     
-                    Text(level.levelDescription)
+                    Text("\(level.wordCount) 단어 · \(level.levelDescription)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .lineLimit(1)
                     
-                    // Progress bar
+                    // Progress Bar
                     if !level.isLocked {
                         ProgressView(value: level.bestScore)
-                            .tint(level.isPassed ? .green : .blue)
+                            .tint(level.isPassed ? .green : levelColor)
                     }
                 }
                 
                 Spacer()
                 
-                // Status/Score
-                VStack {
+                // Right Indicator
+                VStack(alignment: .trailing, spacing: 4) {
                     if level.isPassed {
-                        Text("\(Int(level.bestScore * 100))%")
-                            .font(.headline)
+                        Image(systemName: "checkmark.seal.fill")
                             .foregroundStyle(.green)
                     } else if !level.isLocked {
-                        Text("\(level.wordCount)")
+                        Text("\(Int(level.bestScore * 100))%")
                             .font(.headline)
-                        Text("단어")
+                            .foregroundStyle(levelColor)
+                    }
+                    
+                    if !level.isLocked {
+                        Image(systemName: "chevron.right")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
-                
-                Image(systemName: "chevron.right")
-                    .foregroundStyle(.secondary)
             }
             .padding()
             #if os(iOS)
@@ -245,15 +299,17 @@ struct LevelMapCard: View {
             #else
             .background(Color(nsColor: .controlBackgroundColor))
             #endif
-            .cornerRadius(12)
+            .cornerRadius(16)
+            .opacity(level.isLocked ? 0.6 : 1.0)
         }
         .buttonStyle(.plain)
         .disabled(level.isLocked)
-        .opacity(level.isLocked ? 0.6 : 1.0)
     }
 }
 
 #Preview {
-    CurriculumMapView()
-        .modelContainer(for: [Word.self, StudyLevel.self])
+    NavigationStack {
+        CurriculumMapView()
+    }
+    .modelContainer(for: [Word.self, StudyLevel.self])
 }

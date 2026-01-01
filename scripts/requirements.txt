@@ -1,7 +1,7 @@
 # Requirements for Arabic Learning Scripts
 # Install with: pip install -r requirements.txt
 
-# LLM API (New official package)
+# LLM API (Gemini 2026)
 google-genai>=1.0.0
 
 # Data Processing

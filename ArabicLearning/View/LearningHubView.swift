@@ -1,101 +1,84 @@
 // LearningHubView.swift
-// Unified Learning Dashboard with Level-Dependent Actions
+// Unified Learning Dashboard - The Centerpiece
+// Uses Horizontal Scroll for Library, Enum-based logic
 
 import SwiftUI
 import SwiftData
 
 struct LearningHubView: View {
     @Environment(\.modelContext) private var modelContext
-    
-    // Queries
-    @Query(sort: \StudyLevel.levelID) private var levels: [StudyLevel]
-    
-    // State
+    @State private var viewModel = LearningHubViewModel()
     @State private var showingCurriculumMap = false
-    @State private var showingDailySession = false
-    @State private var showingReading = false
-    @State private var showingTest = false
-    
-    /// Current active level (first unlocked, non-passed)
-    private var currentLevel: StudyLevel? {
-        levels.first { !$0.isLocked && !$0.isPassed } ?? levels.last
-    }
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
-                    // Level Selector Header
-                    levelSelectorHeader
+                    // Level Selector Header (Trigger)
+                    levelHeader
                     
-                    // Today's Progress
-                    todayProgressSection
+                    // Progress Overview
+                    progressSection
                     
-                    // Primary Action (Level-Dependent)
-                    if let level = currentLevel {
-                        primaryActionSection(for: level)
+                    // Dynamic Action Card (Centerpiece)
+                    actionCard
+                    
+                    // Level Library - HORIZONTAL SCROLL
+                    if !viewModel.passages.isEmpty || viewModel.currentLevel != nil {
+                        librarySection
                     }
                     
-                    // Reading Library Section
-                    readingSection
-                    
-                    // Quick Stats
-                    quickStatsSection
+                    Spacer(minLength: 40)
                 }
                 .padding()
             }
             .background(groupedBackground)
-            .navigationTitle("아랍어 학습")
-            .sheet(isPresented: $showingCurriculumMap) {
-                CurriculumMapView()
+            .navigationTitle("학습")
+            .onAppear {
+                viewModel.setup(context: modelContext)
             }
-            .sheet(isPresented: $showingDailySession) {
-                if let level = currentLevel {
-                    DailySessionView(level: level)
-                }
+            .navigationDestination(isPresented: $showingCurriculumMap) {
+                CurriculumMapView(onLevelSelected: { level in
+                    viewModel.selectLevel(level)
+                    showingCurriculumMap = false
+                })
             }
-            .sheet(isPresented: $showingReading) {
-                if let level = currentLevel {
-                    PassageReadingView(level: level)
-                }
-            }
-            .sheet(isPresented: $showingTest) {
-                if let level = currentLevel {
+            // Daily Session - FULL SCREEN NAVIGATION (not popup!)
+            .navigationDestination(isPresented: $viewModel.showingDailySession) {
+                if let level = viewModel.currentLevel {
                     StrictTypingQuizView(level: level)
+                }
+            }
+            .navigationDestination(isPresented: $viewModel.showingStructureQuiz) {
+                if let level = viewModel.currentLevel {
+                    StrictTypingQuizView(level: level)
+                }
+            }
+            .sheet(isPresented: $viewModel.showingPassageReading) {
+                if let level = viewModel.currentLevel {
+                    PassageReadingView(level: level)
                 }
             }
         }
     }
     
-    // MARK: - Level Selector Header
+    // MARK: - Level Header (Trigger)
     
-    private var levelSelectorHeader: some View {
+    private var levelHeader: some View {
         Button(action: { showingCurriculumMap = true }) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("현재 레벨")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    
-                    Text(currentLevel?.displayTitle ?? "레벨 선택")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.primary)
-                }
-                
-                Spacer()
-                
+            HStack(spacing: 16) {
                 // Level Badge
                 ZStack {
                     Circle()
                         .fill(levelColor.gradient)
-                        .frame(width: 50, height: 50)
+                        .frame(width: 56, height: 56)
                     
-                    if let level = currentLevel {
+                    if let level = viewModel.currentLevel {
                         if level.isPassed {
                             Image(systemName: "checkmark")
-                                .foregroundStyle(.white)
+                                .font(.title2)
                                 .fontWeight(.bold)
+                                .foregroundStyle(.white)
                         } else {
                             Text("\(level.levelID)")
                                 .font(.title2)
@@ -105,230 +88,268 @@ struct LearningHubView: View {
                     }
                 }
                 
-                Image(systemName: "chevron.right")
-                    .foregroundStyle(.secondary)
+                // Level Info
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("현재 레벨")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    
+                    Text(viewModel.currentLevel?.displayTitle ?? "레벨 선택")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                    
+                    // Level Type Badge (Uses Enum!)
+                    levelTypeBadge
+                }
+                
+                Spacer()
+                
+                // Navigation Arrow
+                VStack {
+                    Image(systemName: "chevron.right")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+                    
+                    Text("전환")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
             }
             .padding()
             .background(cardBackground)
             .cornerRadius(16)
+            .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
         }
         .buttonStyle(.plain)
     }
     
-    // MARK: - Today's Progress
+    /// Type badge using enum - NO magic numbers
+    private var levelTypeBadge: some View {
+        HStack(spacing: 4) {
+            Image(systemName: viewModel.currentLevelType.icon)
+                .font(.caption2)
+            Text(viewModel.currentLevelType.displayName)
+                .font(.caption2)
+        }
+        .foregroundStyle(viewModel.currentActionColor)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 3)
+        .background(viewModel.currentActionColor.opacity(0.15))
+        .cornerRadius(8)
+    }
     
-    private var todayProgressSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("오늘의 진도")
-                .font(.headline)
+    // MARK: - Progress Section
+    
+    private var progressSection: some View {
+        HStack(spacing: 12) {
+            progressCard(
+                title: "숙련도",
+                value: "\(Int(viewModel.currentMastery * 100))%",
+                icon: "chart.line.uptrend.xyaxis",
+                color: .green
+            )
             
-            HStack(spacing: 16) {
-                progressItem(
-                    icon: "flame.fill",
-                    value: "0",
-                    label: "학습",
-                    color: .orange
-                )
-                
-                progressItem(
-                    icon: "arrow.clockwise",
-                    value: "0",
-                    label: "복습",
-                    color: .blue
-                )
-                
-                progressItem(
-                    icon: "checkmark.circle",
-                    value: "0",
-                    label: "완료",
-                    color: .green
-                )
-            }
-            .padding()
-            .background(cardBackground)
-            .cornerRadius(12)
+            progressCard(
+                title: "단어",
+                value: "\(viewModel.currentLevel?.wordCount ?? 0)",
+                icon: "textformat.abc",
+                color: .blue
+            )
+            
+            progressCard(
+                title: "최고 점수",
+                value: "\(Int((viewModel.currentLevel?.bestScore ?? 0) * 100))%",
+                icon: "star.fill",
+                color: .orange
+            )
         }
     }
     
-    private func progressItem(icon: String, value: String, label: String, color: Color) -> some View {
-        VStack(spacing: 4) {
+    private func progressCard(title: String, value: String, icon: String, color: Color) -> some View {
+        VStack(spacing: 8) {
             Image(systemName: icon)
-                .font(.title2)
+                .font(.title3)
                 .foregroundStyle(color)
             
             Text(value)
                 .font(.headline)
+                .fontWeight(.bold)
             
-            Text(label)
-                .font(.caption)
+            Text(title)
+                .font(.caption2)
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
+        .padding(.vertical, 16)
+        .background(cardBackground)
+        .cornerRadius(12)
     }
     
-    // MARK: - Primary Action (Level-Dependent)
+    // MARK: - Dynamic Action Card (Uses Enum - NO magic numbers!)
     
-    private func primaryActionSection(for level: StudyLevel) -> some View {
-        VStack(spacing: 16) {
-            // Main Study Button
-            Button(action: { showingDailySession = true }) {
-                HStack {
+    private var actionCard: some View {
+        VStack(spacing: 0) {
+            // Main Action Button
+            Button(action: { viewModel.startSession() }) {
+                HStack(spacing: 16) {
+                    // Icon
+                    ZStack {
+                        Circle()
+                            .fill(.white.opacity(0.2))
+                            .frame(width: 56, height: 56)
+                        
+                        Image(systemName: viewModel.currentActionIcon)
+                            .font(.title2)
+                            .foregroundStyle(.white)
+                    }
+                    
+                    // Text (Uses viewModel computed properties - enum based)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("오늘의 학습 시작")
-                            .font(.headline)
+                        Text(viewModel.currentActionTitle)
+                            .font(.title3)
+                            .fontWeight(.bold)
                             .foregroundStyle(.white)
                         
-                        Text("복습 20개 + 신규 10개")
+                        Text(viewModel.currentActionSubtitle)
                             .font(.caption)
                             .foregroundStyle(.white.opacity(0.8))
                     }
                     
                     Spacer()
                     
-                    Image(systemName: "play.circle.fill")
-                        .font(.system(size: 40))
-                        .foregroundStyle(.white)
+                    // Play Button
+                    ZStack {
+                        Circle()
+                            .fill(.white)
+                            .frame(width: 48, height: 48)
+                        
+                        Image(systemName: "play.fill")
+                            .font(.title3)
+                            .foregroundStyle(viewModel.currentActionColor)
+                    }
                 }
-                .padding()
+                .padding(20)
                 .background(
                     LinearGradient(
-                        colors: [.orange, .red],
-                        startPoint: .leading,
-                        endPoint: .trailing
+                        colors: [viewModel.currentActionColor, viewModel.currentActionColor.opacity(0.7)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
                 )
-                .cornerRadius(16)
+                .cornerRadius(20)
+                .shadow(color: viewModel.currentActionColor.opacity(0.4), radius: 12, y: 6)
             }
             .buttonStyle(.plain)
+            .disabled(!viewModel.isDailySessionAvailable)
             
-            // Test Button
-            Button(action: { showingTest = true }) {
-                HStack {
-                    Image(systemName: "pencil.and.outline")
-                        .foregroundStyle(.blue)
-                    
-                    Text("레벨 테스트")
-                        .fontWeight(.medium)
-                    
-                    Spacer()
-                    
-                    if level.bestScore > 0 {
-                        Text("최고: \(Int(level.bestScore * 100))%")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    
-                    Image(systemName: "chevron.right")
-                        .foregroundStyle(.secondary)
-                }
-                .padding()
-                .background(cardBackground)
-                .cornerRadius(12)
-            }
-            .buttonStyle(.plain)
+            // NO separate Level Test button - auto-progression at 80% mastery
+            // The daily session IS the study method
         }
     }
     
-    // MARK: - Reading Section
+    // MARK: - Library Section (HORIZONTAL SCROLL!)
     
-    private var readingSection: some View {
+    private var librarySection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("📖 읽기 연습")
+                Label("레벨 라이브러리", systemImage: "books.vertical")
                     .font(.headline)
                 
                 Spacer()
+                
+                if viewModel.passages.count > 3 {
+                    Button("전체 보기") {
+                        // Could navigate to full list
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.blue)
+                }
             }
             
-            Button(action: { showingReading = true }) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("문장 읽기")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                        
-                        Text("단어를 탭해서 학습에 추가")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+            // HORIZONTAL SCROLL VIEW for compact dashboard
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    // Reading Practice Card
+                    if let level = viewModel.currentLevel {
+                        readingPracticeCard(level: level)
                     }
                     
-                    Spacer()
-                    
-                    Image(systemName: "book.fill")
-                        .font(.title2)
-                        .foregroundStyle(.green)
+                    // Passage Cards
+                    ForEach(viewModel.passages.prefix(5)) { passage in
+                        passageCard(passage)
+                    }
                 }
-                .padding()
-                .background(cardBackground)
-                .cornerRadius(12)
+                .padding(.vertical, 4)
             }
-            .buttonStyle(.plain)
         }
     }
     
-    // MARK: - Quick Stats
-    
-    private var quickStatsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("통계")
-                .font(.headline)
-            
-            HStack(spacing: 12) {
-                statCard(
-                    title: "레벨 진행",
-                    value: "\(passedLevelsCount)/\(levels.count)",
-                    icon: "flag.fill",
-                    color: .purple
-                )
+    /// Reading practice card
+    private func readingPracticeCard(level: StudyLevel) -> some View {
+        NavigationLink {
+            PassageReadingView(level: level)
+        } label: {
+            VStack(alignment: .leading, spacing: 12) {
+                Image(systemName: "book.fill")
+                    .font(.title2)
+                    .foregroundStyle(.green)
                 
-                statCard(
-                    title: "학습 단어",
-                    value: "\(currentLevel?.wordCount ?? 0)",
-                    icon: "textformat.abc",
-                    color: .blue
-                )
+                Text("읽기 연습")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                
+                Text("탭하여 단어 학습")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
             }
+            .frame(width: 120, height: 100)
+            .padding()
+            .background(cardBackground)
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.green.opacity(0.3), lineWidth: 1)
+            )
         }
+        .buttonStyle(.plain)
     }
     
-    private func statCard(title: String, value: String, icon: String, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundStyle(color)
+    /// Compact passage card for horizontal scroll
+    private func passageCard(_ passage: ReadingPassage) -> some View {
+        Button(action: { viewModel.openPassage(passage) }) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(passage.title)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .lineLimit(2)
+                
+                Text(passage.content.prefix(40) + "...")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                
                 Spacer()
+                
+                HStack {
+                    Image(systemName: "doc.text")
+                        .font(.caption2)
+                    Text("읽기")
+                        .font(.caption2)
+                }
+                .foregroundStyle(.blue)
             }
-            
-            Text(value)
-                .font(.title2)
-                .fontWeight(.bold)
-            
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            .frame(width: 140, height: 100)
+            .padding()
+            .background(cardBackground)
+            .cornerRadius(12)
         }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(cardBackground)
-        .cornerRadius(12)
+        .buttonStyle(.plain)
     }
     
     // MARK: - Helpers
     
-    private var passedLevelsCount: Int {
-        levels.filter { $0.isPassed }.count
-    }
-    
     private var levelColor: Color {
-        guard let level = currentLevel else { return .blue }
-        switch level.levelID {
-        case 1: return .blue
-        case 2: return .green
-        case 3: return .orange
-        case 4: return .purple
-        case 5: return .red
-        default: return .blue
-        }
+        viewModel.currentActionColor
     }
     
     private var groupedBackground: Color {

@@ -57,8 +57,14 @@ final class Word {
     /// Level ID for curriculum progression (default: 1)
     var levelID: Int = 1
     
-    /// Relationship to StudyLevel
+    /// Sub-level ID (e.g., "6-3" for Block 6, Sub 3)
+    var subLevelID: String?
+    
+    /// Relationship to StudyLevel (legacy)
     var level: StudyLevel?
+    
+    /// Relationship to SubLevel (new 50-level system)
+    var subLevel: SubLevel?
     
     /// 형태론 유형
     /// Sound(완전), Hollow(속빈), Defective(불완전), Hamzated(함자), Rigid(변하지않는)
@@ -79,6 +85,27 @@ final class Word {
     /// 뉘앙스/의미 (한국어) - 예: "사동/강조", "상호동작", "재귀"
     var nuanceKorean: String?
     
+    // MARK: - Spiral Curriculum Fields (L2/L3/L8)
+    
+    /// Level 2: Noun-Adjective phrase components (JSON)
+    /// Example: {"noun": "بَيْت", "adj": "كَبِير"}
+    var phraseComponents: String?
+    
+    /// Level 3: Link to singular form ID (for plural pairs)
+    var singularForm: String?
+    
+    /// Level 8: Sentence grammatical analysis (JSON)
+    /// Example: {"verb": "ذَهَبَ", "subject": "الطَّالِبُ", "object": "الْمَدْرَسَةِ"}
+    var sentenceAnalysis: String?
+    
+    /// Gender: "M" (masculine) or "F" (feminine)
+    var gender: String?
+    
+    /// CEFR Level: A1, A2, B1, B2, C1, C2
+    var cefr: String?
+    
+    /// Data type: "vocabulary", "phrase", "plural_pair", "sentence"
+    var dataType: String?
     // MARK: - Custom FSRS (DSR Framework)
     
     /// Difficulty: 1.0 (Easiest) ~ 10.0 (Hardest)
@@ -96,6 +123,13 @@ final class Word {
     /// 연속 정답 수 (보조 지표)
     var streak: Int = 0
     
+    /// Is this word due for review? (nextReviewDate <= now)
+    var isDueForReview: Bool {
+        guard let nextDate = nextReviewDate else {
+            return status != .mastered // New words are due unless mastered
+        }
+        return nextDate <= Date()
+    }
     /// Learning Status
     var statusRaw: String = LearningStatus.new.rawValue
     var status: LearningStatus {
@@ -127,9 +161,6 @@ final class Word {
     
     var createdAt: Date = Date()
     
-    // Relationship - 소속 챕터
-    var chapter: Chapter?
-    
     // Relationship - 퀴즈 기록
     @Relationship(deleteRule: .cascade, inverse: \QuizHistory.word)
     var quizHistory: [QuizHistory] = []
@@ -140,10 +171,9 @@ final class Word {
     init(
         arabic: String,
         korean: String,
-        exampleSentence: String,
-        sentenceKorean: String,
-        sentenceWithBlank: String? = nil,
-        chapter: Chapter? = nil
+        exampleSentence: String = "",
+        sentenceKorean: String = "",
+        sentenceWithBlank: String? = nil
     ) {
         self.id = UUID()
         self.arabic = arabic
@@ -158,7 +188,6 @@ final class Word {
         // 빈칸 자동 생성
         self.sentenceWithBlank = sentenceWithBlank ?? exampleSentence.replacingOccurrences(of: arabic, with: "(______)")
         self.createdAt = Date()
-        self.chapter = chapter
         
         // FSRS 초기값
         self.difficulty = 5.0

@@ -1,0 +1,5 @@
+id,level,type,arabic_text,korean_meaning,root,form,part_of_speech,pattern,gender,plural_form,singular_id,phrase_components,example_sentence,sentence_analysis,audio_key,verified
+1,1,vocabulary,كَتَبَ,쓰다,ك-ت-ب,1,,,,,,,,,,
+101,2,phrase,الْبَيْتُ الْكَبِيرُ,큰 집,,,,,,,,"{""noun"":""بَيْت"",""adj"":""كَبِير""}",,,,
+201,3,plural_pair,طُلَّابٌ,학생들,,,,فُعَّالٌ,,,200,,,,,
+801,8,sentence,كَتَبَ الطَّالِبُ رِسَالَةً,학생이 편지를 썼다,,,,,,,,,,"{""subject"":""الطَّالِبُ"",""verb"":""كَتَبَ"",""object"":""رِسَالَةً""}",,

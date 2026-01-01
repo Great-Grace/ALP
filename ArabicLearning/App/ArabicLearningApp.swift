@@ -28,15 +28,14 @@ struct ArabicLearningApp: App {
     
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            VocabularyBook.self,
-            Chapter.self,
             Word.self,
             QuizHistory.self,
-            UserProgress.self,
             VerbForm.self,
             Article.self,
             StudyLevel.self,
-            ReadingPassage.self
+            ReadingPassage.self,
+            CurriculumBlock.self,
+            SubLevel.self
         ])
         
         // Primary: Persistent Storage
