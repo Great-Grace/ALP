@@ -20,6 +20,14 @@ struct LearningHubView: View {
                     // Progress Overview
                     progressSection
                     
+                    // Block Carousel (NEW - 12 Blocks)
+                    blockCarouselSection
+                    
+                    // SubLevel Carousel (NEW - Current Block's SubLevels)
+                    if !viewModel.currentSubLevels.isEmpty {
+                        subLevelSection
+                    }
+                    
                     // Dynamic Action Card (Centerpiece)
                     actionCard
                     
@@ -35,7 +43,12 @@ struct LearningHubView: View {
             .background(groupedBackground)
             .navigationTitle("학습")
             .onAppear {
+                // Seed 50 sub-level curriculum FIRST
+                CurriculumBlock.seedFromJSON(context: modelContext)
+                
+                // Then setup ViewModel with seeded data
                 viewModel.setup(context: modelContext)
+                viewModel.loadBlocks()
             }
             .navigationDestination(isPresented: $showingCurriculumMap) {
                 CurriculumMapView(onLevelSelected: { level in
@@ -244,6 +257,77 @@ struct LearningHubView: View {
             
             // NO separate Level Test button - auto-progression at 80% mastery
             // The daily session IS the study method
+        }
+    }
+    
+    // MARK: - Block Carousel Section (12 Blocks)
+    
+    private var blockCarouselSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("커리큘럼 블록")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                
+                Spacer()
+                
+                if let block = viewModel.currentBlock {
+                    Text(block.cefrLevel)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.secondary.opacity(0.1))
+                        .cornerRadius(6)
+                }
+            }
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(viewModel.blocks, id: \.blockID) { block in
+                        BlockCardView(
+                            block: block,
+                            isSelected: viewModel.currentBlock?.blockID == block.blockID,
+                            onTap: { viewModel.selectBlock(block) }
+                        )
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+        }
+    }
+    
+    // MARK: - SubLevel Section (Current Block's SubLevels)
+    
+    private var subLevelSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                if let block = viewModel.currentBlock {
+                    Text("Block \(block.blockID): \(block.title)")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                }
+                
+                Spacer()
+                
+                Text("\(viewModel.currentSubLevels.filter { !$0.isLocked }.count)/\(viewModel.currentSubLevels.count) 잠금해제")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(viewModel.currentSubLevels, id: \.subLevelID) { subLevel in
+                        SubLevelCardView(
+                            subLevel: subLevel,
+                            blockColor: viewModel.currentBlockColor,
+                            onTap: { viewModel.selectSubLevel(subLevel) }
+                        )
+                    }
+                }
+                .padding(.vertical, 4)
+            }
         }
     }
     

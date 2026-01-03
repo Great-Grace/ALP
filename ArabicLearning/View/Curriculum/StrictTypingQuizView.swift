@@ -102,51 +102,102 @@ struct StrictTypingQuizView: View {
                     .background(cardBackground)
                     .cornerRadius(12)
                     .environment(\.layoutDirection, .rightToLeft)
-                    .disabled(viewModel.quizState != .active)
+                    .onChange(of: viewModel.userInput) { oldValue, newValue in
+                        // "1" key pressed → Hint / Reveal toggle
+                        if newValue.contains("1") {
+                            // Remove the "1" from input
+                            viewModel.userInput = oldValue
+                            
+                            // Toggle hint → reveal
+                            if !viewModel.usedHint {
+                                viewModel.requestHint()
+                            } else if !viewModel.usedReveal {
+                                viewModel.revealAnswer()
+                            }
+                            return
+                        }
+                        
+                        // Filter: Arabic only (block English, numbers, symbols)
+                        let filtered = newValue.filter { char in
+                            // Allow Arabic letters (0x0600-0x06FF) and space
+                            let scalar = char.unicodeScalars.first?.value ?? 0
+                            return (scalar >= 0x0600 && scalar <= 0x06FF) || char == " "
+                        }
+                        
+                        if filtered != newValue {
+                            viewModel.userInput = filtered
+                            return
+                        }
+                        
+                        // Auto-submit when input matches (vowel-stripped comparison)
+                        if !newValue.isEmpty, viewModel.quizState == .active {
+                            if let word = viewModel.currentWord,
+                               ArabicUtils.isStrictMatch(newValue, word.arabic) {
+                                viewModel.checkAnswer()
+                            }
+                        }
+                    }
                 
                 // Feedback Message
                 if !viewModel.feedbackMessage.isEmpty {
                     Text(viewModel.feedbackMessage)
-                        .font(.subheadline)
+                        .font(.title3)  // Larger feedback text
+                        .fontWeight(.medium)
                         .foregroundStyle(feedbackColor)
                         .transition(.opacity)
+                        .padding(.top, 8)
                 }
             }
             .padding(.horizontal)
             
-            // Help Buttons (Hint / Reveal)
+            // Help Buttons (Hint / Reveal) - LARGER SIZE
             if viewModel.quizState == .active {
-                HStack(spacing: 16) {
-                    // Hint Button (shows first letter)
+                HStack(spacing: 20) {
+                    // Hint Button (shows first letter) - Press "1" to activate
                     Button(action: { viewModel.requestHint() }) {
-                        HStack {
-                            Image(systemName: "lightbulb")
-                            Text("힌트")
+                        HStack(spacing: 8) {
+                            Image(systemName: "lightbulb.fill")
+                                .font(.title2)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("힌트")
+                                    .font(.headline)
+                                Text("1키")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
-                        .font(.subheadline)
                         .foregroundStyle(viewModel.usedHint ? .gray : .orange)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(Color.orange.opacity(0.1))
-                        .cornerRadius(8)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 16)
+                        .frame(minWidth: 120)
+                        .background(Color.orange.opacity(viewModel.usedHint ? 0.05 : 0.15))
+                        .cornerRadius(16)
                     }
                     .disabled(viewModel.usedHint)
                     
-                    // Reveal Button (shows answer)
+                    // Reveal Button (shows answer) - Press "1" again to reveal
                     Button(action: { viewModel.revealAnswer() }) {
-                        HStack {
-                            Image(systemName: "eye")
-                            Text("정답 보기")
+                        HStack(spacing: 8) {
+                            Image(systemName: "eye.fill")
+                                .font(.title2)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("정답 보기")
+                                    .font(.headline)
+                                Text("1키 x2")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
-                        .font(.subheadline)
                         .foregroundStyle(viewModel.usedReveal ? .gray : .blue)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(Color.blue.opacity(0.1))
-                        .cornerRadius(8)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 16)
+                        .frame(minWidth: 120)
+                        .background(Color.blue.opacity(viewModel.usedReveal ? 0.05 : 0.15))
+                        .cornerRadius(16)
                     }
                     .disabled(viewModel.usedReveal)
                 }
+                .padding(.top, 16)
             }
             
             Spacer()

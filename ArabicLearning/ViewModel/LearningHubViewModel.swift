@@ -28,6 +28,28 @@ final class LearningHubViewModel {
     /// Reading passages for current level
     var passages: [ReadingPassage] = []
     
+    // MARK: - New 50 Sub-level System
+    
+    /// All curriculum blocks (12 blocks)
+    var blocks: [CurriculumBlock] = []
+    
+    /// Currently selected block
+    var currentBlock: CurriculumBlock?
+    
+    /// Sub-levels in current block
+    var currentSubLevels: [SubLevel] = []
+    
+    /// Selected sub-level ID
+    var selectedSubLevelID: String = "1-5" {
+        didSet {
+            UserDefaults.standard.set(selectedSubLevelID, forKey: "selectedSubLevelID")
+            refreshCurrentSubLevel()
+        }
+    }
+    
+    /// Current sub-level object
+    var currentSubLevel: SubLevel?
+    
     // MARK: - UI State
     
     var showingDailySession = false
@@ -101,6 +123,84 @@ final class LearningHubViewModel {
         if let words = try? context.fetch(wordDescriptor) {
             let matureCount = words.filter { $0.stability > 21 }.count
             currentMastery = words.isEmpty ? 0 : Double(matureCount) / Double(words.count)
+        }
+    }
+    
+    // MARK: - Block/SubLevel Loading (50 Sub-level System)
+    
+    func loadBlocks() {
+        guard let context = modelContext else { return }
+        
+        let descriptor = FetchDescriptor<CurriculumBlock>(sortBy: [SortDescriptor(\.blockID)])
+        blocks = (try? context.fetch(descriptor)) ?? []
+        
+        // Restore selected sub-level from UserDefaults
+        if let savedSubLevel = UserDefaults.standard.string(forKey: "selectedSubLevelID") {
+            selectedSubLevelID = savedSubLevel
+        }
+        
+        refreshCurrentSubLevel()
+    }
+    
+    func refreshCurrentSubLevel() {
+        guard let context = modelContext else { return }
+        
+        // Find the sub-level matching the selected ID
+        let subLevelID = selectedSubLevelID
+        let descriptor = FetchDescriptor<SubLevel>(
+            predicate: #Predicate { $0.subLevelID == subLevelID }
+        )
+        
+        if let subLevels = try? context.fetch(descriptor), let subLevel = subLevels.first {
+            currentSubLevel = subLevel
+            currentBlock = subLevel.block
+            
+            // Load all sub-levels in this block
+            if let blockID = currentBlock?.blockID {
+                let blockSubLevelDescriptor = FetchDescriptor<SubLevel>(
+                    predicate: #Predicate { $0.blockID == blockID },
+                    sortBy: [SortDescriptor(\.orderInBlock)]
+                )
+                currentSubLevels = (try? context.fetch(blockSubLevelDescriptor)) ?? []
+            }
+        }
+    }
+    
+    func selectBlock(_ block: CurriculumBlock) {
+        guard !block.isLocked else { return }
+        currentBlock = block
+        
+        // Load sub-levels for this block
+        guard let context = modelContext else { return }
+        let blockID = block.blockID
+        let descriptor = FetchDescriptor<SubLevel>(
+            predicate: #Predicate { $0.blockID == blockID },
+            sortBy: [SortDescriptor(\.orderInBlock)]
+        )
+        currentSubLevels = (try? context.fetch(descriptor)) ?? []
+        
+        // Select first unlocked sub-level
+        if let firstUnlocked = currentSubLevels.first(where: { !$0.isLocked }) {
+            selectedSubLevelID = firstUnlocked.subLevelID
+        }
+    }
+    
+    func selectSubLevel(_ subLevel: SubLevel) {
+        guard !subLevel.isLocked else { return }
+        selectedSubLevelID = subLevel.subLevelID
+    }
+    
+    /// Color for current block
+    var currentBlockColor: Color {
+        guard let block = currentBlock else { return .blue }
+        switch block.blockID {
+        case 0: return .gray
+        case 1, 2: return .blue
+        case 3, 4, 5: return .green
+        case 6: return .orange
+        case 7, 8, 9, 10: return .purple
+        case 11, 12: return .red
+        default: return .blue
         }
     }
     

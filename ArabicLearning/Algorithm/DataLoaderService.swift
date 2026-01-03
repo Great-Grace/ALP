@@ -210,6 +210,10 @@ actor DataLoaderService {
             let cefr = safeColumn(columns, columnMap["cefr"])
             let dataType = safeColumn(columns, columnMap["type"])
             
+            // 50 Sub-level fields
+            let subLevelID = safeColumn(columns, columnMap["sub_level_id"])
+            let pos = safeColumn(columns, columnMap["pos"])
+            
             // Create Word (NO SAVE YET - batch at end)
             let word = Word(
                 arabic: arabicWord,
@@ -231,6 +235,9 @@ actor DataLoaderService {
             word.gender = gender
             word.cefr = cefr
             word.dataType = dataType
+            
+            // 50 Sub-level assignment
+            word.subLevelID = subLevelID
             
             context.insert(word)
             importedCount += 1
