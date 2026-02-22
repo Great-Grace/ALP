@@ -1,0 +1,1402 @@
+[
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-1",
+    "content_payload": {
+      "arabic": "مَرْحَبًا",
+      "meaning": "안녕하세요, 환영합니다",
+      "pos": "expression",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-1_marhaban.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-1",
+    "content_payload": {
+      "arabic": "السَّلَامُ عَلَيْكُمْ",
+      "meaning": "안녕하세요 (이슬람식 인사)",
+      "pos": "expression",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-1_assalamu_alaykum.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-1",
+    "content_payload": {
+      "arabic": "وَعَلَيْكُمُ السَّلَامُ",
+      "meaning": "안녕하세요 (이슬람식 인사 응답)",
+      "pos": "expression",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-1_wa_alaykumus_salam.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-1",
+    "content_payload": {
+      "arabic": "صَبَاحُ الْخَيْرِ",
+      "meaning": "좋은 아침입니다",
+      "pos": "expression",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-1_sabahul_khayr.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-1",
+    "content_payload": {
+      "arabic": "مَسَاءُ الْخَيْرِ",
+      "meaning": "좋은 저녁입니다",
+      "pos": "expression",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-1_masa_ul_khayr.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-1",
+    "content_payload": {
+      "arabic": "كَيْفَ حَالُكَ؟",
+      "meaning": "어떻게 지내세요? (남성)",
+      "pos": "expression",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-1_kayfa_haluka.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-1",
+    "content_payload": {
+      "arabic": "أَنَا بِخَيْرٍ",
+      "meaning": "저는 괜찮아요",
+      "pos": "expression",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-1_ana_bikhayr.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-1",
+    "content_payload": {
+      "arabic": "شُكْرًا",
+      "meaning": "감사합니다",
+      "pos": "expression",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-1_shukran.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-1",
+    "content_payload": {
+      "arabic": "مِنْ فَضْلِكَ",
+      "meaning": "부탁합니다 / ~해주세요 (남성)",
+      "pos": "expression",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-1_min_fadlika.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-1",
+    "content_payload": {
+      "arabic": "إِلَى اللِّقَاءِ",
+      "meaning": "안녕히 계세요/가세요",
+      "pos": "expression",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-1_ila_lliqa.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-1",
+    "content_payload": {
+      "arabic": "نَعَمْ",
+      "meaning": "네 / 예",
+      "pos": "interjection",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-1_naam.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-1",
+    "content_payload": {
+      "arabic": "لَا",
+      "meaning": "아니요",
+      "pos": "interjection",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-1_la.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-1",
+    "content_payload": {
+      "arabic": "آسِفٌ",
+      "meaning": "죄송합니다 / 실례합니다 (남성)",
+      "pos": "adjective",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-1_asif.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-1",
+    "content_payload": {
+      "arabic": "أَهْلًا وَسَهْلًا",
+      "meaning": "환영합니다",
+      "pos": "expression",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-1_ahlan_wa_sahlan.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-1",
+    "content_payload": {
+      "arabic": "أَنَا",
+      "meaning": "나 / 저",
+      "pos": "pronoun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-1_ana.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-1",
+    "content_payload": {
+      "arabic": "أَنْتَ",
+      "meaning": "너 / 당신 (남성)",
+      "pos": "pronoun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-1_anta.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-1",
+    "content_payload": {
+      "arabic": "أَنْتِ",
+      "meaning": "너 / 당신 (여성)",
+      "pos": "pronoun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-1_anti.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-1",
+    "content_payload": {
+      "arabic": "هُوَ",
+      "meaning": "그",
+      "pos": "pronoun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-1_huwa.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-1",
+    "content_payload": {
+      "arabic": "هِيَ",
+      "meaning": "그녀",
+      "pos": "pronoun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-1_hiya.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-1",
+    "content_payload": {
+      "arabic": "نَحْنُ",
+      "meaning": "우리",
+      "pos": "pronoun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-1_nahnu.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-2",
+    "content_payload": {
+      "arabic": "فِي",
+      "meaning": "~안에, ~에",
+      "pos": "prep",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-2_fi.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-2",
+    "content_payload": {
+      "arabic": "عَلَى",
+      "meaning": "~위에",
+      "pos": "prep",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-2_ala.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-2",
+    "content_payload": {
+      "arabic": "مِنْ",
+      "meaning": "~로부터",
+      "pos": "prep",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-2_min.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-2",
+    "content_payload": {
+      "arabic": "إِلَى",
+      "meaning": "~로, ~까지",
+      "pos": "prep",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-2_ila.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-2",
+    "content_payload": {
+      "arabic": "مَعَ",
+      "meaning": "~와 함께",
+      "pos": "prep",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-2_maa.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-2",
+    "content_payload": {
+      "arabic": "لِـ",
+      "meaning": "~을 위해, ~에게",
+      "pos": "prep",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-2_li.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-2",
+    "content_payload": {
+      "arabic": "بِـ",
+      "meaning": "~으로, ~에 의해",
+      "pos": "prep",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-2_bi.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-2",
+    "content_payload": {
+      "arabic": "عَنْ",
+      "meaning": "~에 대하여, ~로부터",
+      "pos": "prep",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-2_an.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-2",
+    "content_payload": {
+      "arabic": "تَحْتَ",
+      "meaning": "~아래에",
+      "pos": "prep",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-2_tahta.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-2",
+    "content_payload": {
+      "arabic": "فَوْقَ",
+      "meaning": "~위에",
+      "pos": "prep",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-2_fawqa.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-2",
+    "content_payload": {
+      "arabic": "أَمَامَ",
+      "meaning": "~앞에",
+      "pos": "prep",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-2_amama.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-2",
+    "content_payload": {
+      "arabic": "خَلْفَ",
+      "meaning": "~뒤에",
+      "pos": "prep",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-2_khalfa.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-2",
+    "content_payload": {
+      "arabic": "بِجَانِبِ",
+      "meaning": "~옆에",
+      "pos": "prep",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-2_bijanibi.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-2",
+    "content_payload": {
+      "arabic": "مَا",
+      "meaning": "무엇? (명사)",
+      "pos": "question word",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-2_ma.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-2",
+    "content_payload": {
+      "arabic": "مَاذَا",
+      "meaning": "무엇을? (동사)",
+      "pos": "question word",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-2_madha.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-2",
+    "content_payload": {
+      "arabic": "مَنْ",
+      "meaning": "누구?",
+      "pos": "question word",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-2_man.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-2",
+    "content_payload": {
+      "arabic": "أَيْنَ",
+      "meaning": "어디에?",
+      "pos": "question word",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-2_ayna.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-2",
+    "content_payload": {
+      "arabic": "مَتَى",
+      "meaning": "언제?",
+      "pos": "question word",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-2_mata.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-2",
+    "content_payload": {
+      "arabic": "كَيْفَ",
+      "meaning": "어떻게?",
+      "pos": "question word",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-2_kayfa.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-2",
+    "content_payload": {
+      "arabic": "هَلْ",
+      "meaning": "~입니까? (예/아니오 질문)",
+      "pos": "question word",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-2_hal.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-3",
+    "content_payload": {
+      "arabic": "أَبٌ",
+      "meaning": "아버지",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-3_abun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-3",
+    "content_payload": {
+      "arabic": "أُمٌّ",
+      "meaning": "어머니",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-3_ummun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-3",
+    "content_payload": {
+      "arabic": "اِبْنٌ",
+      "meaning": "아들",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-3_ibnun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-3",
+    "content_payload": {
+      "arabic": "اِبْنَةٌ",
+      "meaning": "딸",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-3_ibnatun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-3",
+    "content_payload": {
+      "arabic": "أَخٌ",
+      "meaning": "형제",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-3_akhun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-3",
+    "content_payload": {
+      "arabic": "أُخْتٌ",
+      "meaning": "자매",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-3_ukhtun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-3",
+    "content_payload": {
+      "arabic": "رَجُلٌ",
+      "meaning": "남자",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-3_rajulun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-3",
+    "content_payload": {
+      "arabic": "اِمْرَأَةٌ",
+      "meaning": "여자",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-3_imraatun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-3",
+    "content_payload": {
+      "arabic": "وَلَدٌ",
+      "meaning": "소년",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-3_waladun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-3",
+    "content_payload": {
+      "arabic": "بِنْتٌ",
+      "meaning": "소녀",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-3_bintun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-3",
+    "content_payload": {
+      "arabic": "صَدِيقٌ",
+      "meaning": "친구 (남성)",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-3_sadiq_male.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-3",
+    "content_payload": {
+      "arabic": "صَدِيقَةٌ",
+      "meaning": "친구 (여성)",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-3_sadiq_female.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-3",
+    "content_payload": {
+      "arabic": "جَدٌّ",
+      "meaning": "할아버지",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-3_jaddun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-3",
+    "content_payload": {
+      "arabic": "جَدَّةٌ",
+      "meaning": "할머니",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-3_jaddatun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-3",
+    "content_payload": {
+      "arabic": "عَائِلَةٌ",
+      "meaning": "가족",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-3_ailatun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-3",
+    "content_payload": {
+      "arabic": "شَخْصٌ",
+      "meaning": "사람",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-3_shakhsun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-3",
+    "content_payload": {
+      "arabic": "طِفْلٌ",
+      "meaning": "아이",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-3_tiflun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-3",
+    "content_payload": {
+      "arabic": "زَوْجٌ",
+      "meaning": "남편",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-3_zawjun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-3",
+    "content_payload": {
+      "arabic": "زَوْجَةٌ",
+      "meaning": "아내",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-3_zawjatun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-3",
+    "content_payload": {
+      "arabic": "نَاسٌ",
+      "meaning": "사람들",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-3_nasun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-4",
+    "content_payload": {
+      "arabic": "بَيْتٌ",
+      "meaning": "집 (house)",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-4_baytun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-4",
+    "content_payload": {
+      "arabic": "مَدْرَسَةٌ",
+      "meaning": "학교 (school)",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-4_madrasatun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-4",
+    "content_payload": {
+      "arabic": "سُوقٌ",
+      "meaning": "시장 (market)",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-4_suqun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-4",
+    "content_payload": {
+      "arabic": "بَنْكٌ",
+      "meaning": "은행 (bank)",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-4_bankun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-4",
+    "content_payload": {
+      "arabic": "مَطْعَمٌ",
+      "meaning": "식당 (restaurant)",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-4_mat'amun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-4",
+    "content_payload": {
+      "arabic": "فُنْدُقٌ",
+      "meaning": "호텔 (hotel)",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-4_funduqun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-4",
+    "content_payload": {
+      "arabic": "حَدِيقَةٌ",
+      "meaning": "공원 (park)",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-4_hadiqatun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-4",
+    "content_payload": {
+      "arabic": "مَدِينَةٌ",
+      "meaning": "도시 (city)",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-4_madinatun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-4",
+    "content_payload": {
+      "arabic": "بَلَدٌ",
+      "meaning": "나라 (country)",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-4_baladun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-4",
+    "content_payload": {
+      "arabic": "طَرِيقٌ",
+      "meaning": "길 (road/street)",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-4_tariqun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-4",
+    "content_payload": {
+      "arabic": "مَحَطَّةٌ",
+      "meaning": "역 (station)",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-4_mahattatun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-4",
+    "content_payload": {
+      "arabic": "مَطَارٌ",
+      "meaning": "공항 (airport)",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-4_matarun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-4",
+    "content_payload": {
+      "arabic": "مَكْتَبٌ",
+      "meaning": "사무실 (office)",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-4_maktabun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-4",
+    "content_payload": {
+      "arabic": "مُسْتَشْفًى",
+      "meaning": "병원 (hospital)",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-4_mustashfan.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-4",
+    "content_payload": {
+      "arabic": "حَمَّامٌ",
+      "meaning": "화장실 (restroom)",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-4_hammamun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-4",
+    "content_payload": {
+      "arabic": "يَمِينٌ",
+      "meaning": "오른쪽 (right side)",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-4_yaminun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-4",
+    "content_payload": {
+      "arabic": "يَسَارٌ",
+      "meaning": "왼쪽 (left side)",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-4_yasarun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-4",
+    "content_payload": {
+      "arabic": "أَمَامَ",
+      "meaning": "앞에 (in front of)",
+      "pos": "prep",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-4_amama.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-4",
+    "content_payload": {
+      "arabic": "خَلْفَ",
+      "meaning": "뒤에 (behind)",
+      "pos": "prep",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-4_khalfa.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "1-4",
+    "content_payload": {
+      "arabic": "فَوْقَ",
+      "meaning": "위에 (above)",
+      "pos": "prep",
+      "audio_url": "s3://kalimat-audio/lvl-1/1-4_fawqa.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-1",
+    "content_payload": {
+      "arabic": "كِتَابٌ",
+      "meaning": "책",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-1_kitabun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-1",
+    "content_payload": {
+      "arabic": "قَلَمٌ",
+      "meaning": "펜",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-1_qalamun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-1",
+    "content_payload": {
+      "arabic": "بَابٌ",
+      "meaning": "문",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-1_babun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-1",
+    "content_payload": {
+      "arabic": "بَيْتٌ",
+      "meaning": "집",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-1_baytun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-1",
+    "content_payload": {
+      "arabic": "سَيَّارَةٌ",
+      "meaning": "자동차",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-1_sayyaratun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-1",
+    "content_payload": {
+      "arabic": "طَاوِلَةٌ",
+      "meaning": "테이블",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-1_tawilatun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-1",
+    "content_payload": {
+      "arabic": "كُرْسِيٌّ",
+      "meaning": "의자",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-1_kursiyun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-1",
+    "content_payload": {
+      "arabic": "هَاتِفٌ",
+      "meaning": "전화기",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-1_hatifun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-1",
+    "content_payload": {
+      "arabic": "مِفْتَاحٌ",
+      "meaning": "열쇠",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-1_miftahun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-1",
+    "content_payload": {
+      "arabic": "حَقِيبَةٌ",
+      "meaning": "가방",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-1_haqibatun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-1",
+    "content_payload": {
+      "arabic": "خُبْزٌ",
+      "meaning": "빵",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-1_khubzun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-1",
+    "content_payload": {
+      "arabic": "مَاءٌ",
+      "meaning": "물",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-1_maun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-1",
+    "content_payload": {
+      "arabic": "حَلِيبٌ",
+      "meaning": "우유",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-1_halibun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-1",
+    "content_payload": {
+      "arabic": "قَهْوَةٌ",
+      "meaning": "커피",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-1_qahwatun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-1",
+    "content_payload": {
+      "arabic": "شَايٌ",
+      "meaning": "차",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-1_shayun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-1",
+    "content_payload": {
+      "arabic": "تُفَّاحَةٌ",
+      "meaning": "사과",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-1_tuffahatun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-1",
+    "content_payload": {
+      "arabic": "مَوْزٌ",
+      "meaning": "바나나",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-1_mawzun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-1",
+    "content_payload": {
+      "arabic": "أَرُزٌّ",
+      "meaning": "쌀/밥",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-1_aruzzun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-1",
+    "content_payload": {
+      "arabic": "لَحْمٌ",
+      "meaning": "고기",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-1_lahmun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-1",
+    "content_payload": {
+      "arabic": "دَجَاجٌ",
+      "meaning": "닭고기",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-1_dajajun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-2",
+    "content_payload": {
+      "arabic": "وَقْتٌ",
+      "meaning": "시간",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-2_waqtun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-2",
+    "content_payload": {
+      "arabic": "يَوْمٌ",
+      "meaning": "날",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-2_yawmun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-2",
+    "content_payload": {
+      "arabic": "أُسْبُوعٌ",
+      "meaning": "주",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-2_usbuun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-2",
+    "content_payload": {
+      "arabic": "شَهْرٌ",
+      "meaning": "월",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-2_shahrun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-2",
+    "content_payload": {
+      "arabic": "سَنَةٌ",
+      "meaning": "년",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-2_sanatun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-2",
+    "content_payload": {
+      "arabic": "سَاعَةٌ",
+      "meaning": "시계/시간",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-2_saatun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-2",
+    "content_payload": {
+      "arabic": "دَقِيقَةٌ",
+      "meaning": "분",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-2_daqiqatun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-2",
+    "content_payload": {
+      "arabic": "ثَانِيَةٌ",
+      "meaning": "초",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-2_thaniyatun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-2",
+    "content_payload": {
+      "arabic": "صَبَاحٌ",
+      "meaning": "아침",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-2_sabahun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-2",
+    "content_payload": {
+      "arabic": "مَسَاءٌ",
+      "meaning": "저녁",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-2_masaun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-2",
+    "content_payload": {
+      "arabic": "لَيْلٌ",
+      "meaning": "밤",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-2_laylun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-2",
+    "content_payload": {
+      "arabic": "الْيَوْمَ",
+      "meaning": "오늘",
+      "pos": "adverb",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-2_al-yawma.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-2",
+    "content_payload": {
+      "arabic": "أَمْسِ",
+      "meaning": "어제",
+      "pos": "adverb",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-2_amsi.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-2",
+    "content_payload": {
+      "arabic": "غَدًا",
+      "meaning": "내일",
+      "pos": "adverb",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-2_ghadan.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-2",
+    "content_payload": {
+      "arabic": "الْآنَ",
+      "meaning": "지금",
+      "pos": "adverb",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-2_al-ana.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-2",
+    "content_payload": {
+      "arabic": "دَائِمًا",
+      "meaning": "항상",
+      "pos": "adverb",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-2_daiman.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-2",
+    "content_payload": {
+      "arabic": "أَحْيَانًا",
+      "meaning": "가끔",
+      "pos": "adverb",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-2_ahyanan.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-2",
+    "content_payload": {
+      "arabic": "قَبْلَ",
+      "meaning": "~전에",
+      "pos": "prep",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-2_qabla.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-2",
+    "content_payload": {
+      "arabic": "بَعْدَ",
+      "meaning": "~후에",
+      "pos": "prep",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-2_bada.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-2",
+    "content_payload": {
+      "arabic": "الْأَحَدُ",
+      "meaning": "일요일",
+      "pos": "noun",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-2_al-ahadu.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-3",
+    "content_payload": {
+      "arabic": "أَحْمَرُ",
+      "meaning": "빨간색",
+      "pos": "adjective",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-3_ahmaru.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-3",
+    "content_payload": {
+      "arabic": "أَزْرَقُ",
+      "meaning": "파란색",
+      "pos": "adjective",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-3_azraqu.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-3",
+    "content_payload": {
+      "arabic": "أَخْضَرُ",
+      "meaning": "초록색",
+      "pos": "adjective",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-3_akhdaru.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-3",
+    "content_payload": {
+      "arabic": "أَصْفَرُ",
+      "meaning": "노란색",
+      "pos": "adjective",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-3_asfaru.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-3",
+    "content_payload": {
+      "arabic": "أَبْيَضُ",
+      "meaning": "하얀색",
+      "pos": "adjective",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-3_abyadu.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-3",
+    "content_payload": {
+      "arabic": "أَسْوَدُ",
+      "meaning": "검은색",
+      "pos": "adjective",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-3_aswadu.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-3",
+    "content_payload": {
+      "arabic": "بُنِّيٌّ",
+      "meaning": "갈색",
+      "pos": "adjective",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-3_bunniyyun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-3",
+    "content_payload": {
+      "arabic": "وَرْدِيٌّ",
+      "meaning": "분홍색",
+      "pos": "adjective",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-3_wardiyyun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-3",
+    "content_payload": {
+      "arabic": "بُرْتُقَالِيٌّ",
+      "meaning": "주황색",
+      "pos": "adjective",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-3_burtuqaliyyun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-3",
+    "content_payload": {
+      "arabic": "رَمَادِيٌّ",
+      "meaning": "회색",
+      "pos": "adjective",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-3_ramadiyyun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-3",
+    "content_payload": {
+      "arabic": "كَبِيرٌ",
+      "meaning": "큰",
+      "pos": "adjective",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-3_kabirun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-3",
+    "content_payload": {
+      "arabic": "صَغِيرٌ",
+      "meaning": "작은",
+      "pos": "adjective",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-3_saghirun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-3",
+    "content_payload": {
+      "arabic": "جَمِيلٌ",
+      "meaning": "아름다운",
+      "pos": "adjective",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-3_jamilun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-3",
+    "content_payload": {
+      "arabic": "قَبِيحٌ",
+      "meaning": "못생긴",
+      "pos": "adjective",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-3_qabihun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-3",
+    "content_payload": {
+      "arabic": "جَدِيدٌ",
+      "meaning": "새로운",
+      "pos": "adjective",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-3_jadidun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-3",
+    "content_payload": {
+      "arabic": "قَدِيمٌ",
+      "meaning": "오래된",
+      "pos": "adjective",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-3_qadimun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-3",
+    "content_payload": {
+      "arabic": "سَرِيعٌ",
+      "meaning": "빠른",
+      "pos": "adjective",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-3_sariun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-3",
+    "content_payload": {
+      "arabic": "بَطِيءٌ",
+      "meaning": "느린",
+      "pos": "adjective",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-3_batiun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-3",
+    "content_payload": {
+      "arabic": "سَهْلٌ",
+      "meaning": "쉬운",
+      "pos": "adjective",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-3_sahlun.mp3"
+    }
+  },
+  {
+    "phase_type": "Phase1",
+    "sub_level_id": "2-3",
+    "content_payload": {
+      "arabic": "صَعْبٌ",
+      "meaning": "어려운",
+      "pos": "adjective",
+      "audio_url": "s3://kalimat-audio/lvl-2/2-3_sabun.mp3"
+    }
+  }
+]
